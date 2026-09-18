@@ -22,19 +22,20 @@ struct AircraftConfig
     float sideDrag;
 
     //actual speed
-    float mobilityLoseLow;
-    float mobilityLoseHigh;
+    float maxSpeed;
+    float idleSpeed;
 
     float stallSpeed;
     float recoverySpeed;
 
     //thust
-    float maxThrust;
-    float idleThrust;
+    float maxThrust; //no need to modify directly
+    float idleThrust; //no need to modify directly
 
     float acceleration;
     float breakPower;
 
+    //mobility
     float pitch;
     float roll;
     float yaw;
@@ -48,32 +49,40 @@ struct Aircraft
     float thrust = 0.0f;
 };
 
+inline float GetThrustForDesiredSpeed(float desiredSpeed, float forwardDrag)
+{
+    return desiredSpeed * forwardDrag;
+}
+
 inline AircraftConfig aircraftsDB[AIRCRAFT_COUNT];
 
 inline void LoadAssets()
 {
-    aircraftsDB[F_15] = {
+    //F-15
+    AircraftConfig& f15 = aircraftsDB[F_15];
 
-        .model = LoadModel("assets/models/f-15.obj"),
+    f15.model = LoadModel("assets/models/f-15.obj");
         
-        .angularDrag = {2,2,2},
+    f15.angularDrag = {2,2,2};
 
-        .forwardDrag = 0.2f,
-        .sideDrag = 4.0f,
+    f15.forwardDrag = 0.2f;
+    f15.sideDrag = 4.0f;
 
-        .stallSpeed = 20.0f,
-        .recoverySpeed = 30.0f,
+    f15.maxSpeed = 170.0f;
+    f15.idleSpeed = 100.0f;
 
-        .maxThrust = 60.0f,
-        .idleThrust = 20.0f,
+    f15.stallSpeed = 30.0f;
+    f15.recoverySpeed = 40.0f;
 
-        .acceleration = 8.0f,
-        .breakPower = 20.0f,
+    f15.maxThrust = GetThrustForDesiredSpeed(f15.maxSpeed, f15.forwardDrag);
+    f15.idleThrust = GetThrustForDesiredSpeed(f15.idleSpeed, f15.forwardDrag);
 
-        .pitch = 2.0f,
-        .roll = 5.0f,
-        .yaw = 1.0f
-    };
+    f15.acceleration = 8.0f;
+    f15.breakPower = 20.0f;
+
+    f15.pitch = 1.25f;
+    f15.roll = 4.5;
+    f15.yaw = 0.25f;
 }
 
 inline Body InitAircraftBody(AircraftType type)

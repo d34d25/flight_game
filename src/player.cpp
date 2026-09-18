@@ -2,6 +2,16 @@
 
 void UpdatePlayerInput(Player &player)
 {
+    player.throttleUp = IsKeyDown(KEY_W);
+    player.throttleDown = IsKeyDown(KEY_S);
+
+    if(player.stalling)
+    {
+        RemoveControlPlayer(player);
+
+        return;
+    }
+
     player.pitchUp = IsKeyDown(KEY_DOWN);
     player.pitchDown = IsKeyDown(KEY_UP);
 
@@ -10,9 +20,6 @@ void UpdatePlayerInput(Player &player)
 
     player.yawLeft = IsKeyDown(KEY_A);
     player.yawRight = IsKeyDown(KEY_D);
-
-    player.throttleUp = IsKeyDown(KEY_W);
-    player.throttleDown = IsKeyDown(KEY_S);
 }
 
 void UpdatePlayer(Player &player, float dt)
@@ -23,14 +30,22 @@ void UpdatePlayer(Player &player, float dt)
 
     float& thrust = player.aircraft.thrust;
 
-    if(player.pitchDown) ApplyTorqueLocal(body, LOCAL_RIGHT, config.pitch);
-    else if(player.pitchUp) ApplyTorqueLocal(body, LOCAL_RIGHT, -config.pitch);
+    const Quaternion& rotation = body.transform.rotation;
 
-    if(player.rollLeft) ApplyTorqueLocal(body, LOCAL_FORWARD, -config.roll);
-    else if(player.rollRight) ApplyTorqueLocal(body, LOCAL_FORWARD, config.roll);
+    Vector3 bodyForward = GetWorldVectorFromLocalVector(rotation, LOCAL_FORWARD);
 
-    if(player.yawRight) ApplyTorqueLocal(body, LOCAL_UP, -config.yaw);
-    else if(player.yawLeft) ApplyTorqueLocal(body, LOCAL_UP, config.yaw);
+    float forwardSpeed = Vector3DotProduct(body.linearVelocity, bodyForward);
+
+    float mobilityFactor = CalculateMobilityFactor(forwardSpeed, config);
+
+    if(player.pitchDown) ApplyTorqueLocal(body, LOCAL_RIGHT, config.pitch * mobilityFactor);
+    else if(player.pitchUp) ApplyTorqueLocal(body, LOCAL_RIGHT, -config.pitch * mobilityFactor);
+
+    if(player.rollLeft) ApplyTorqueLocal(body, LOCAL_FORWARD, -config.roll * mobilityFactor);
+    else if(player.rollRight) ApplyTorqueLocal(body, LOCAL_FORWARD, config.roll * mobilityFactor);
+
+    if(player.yawRight) ApplyTorqueLocal(body, LOCAL_UP, -config.yaw * mobilityFactor);
+    else if(player.yawLeft) ApplyTorqueLocal(body, LOCAL_UP, config.yaw * mobilityFactor);
 
     if(player.throttleUp)
     {
@@ -64,15 +79,9 @@ void UpdatePlayer(Player &player, float dt)
 
     //plane physics
 
-    const Quaternion& rotation = body.transform.rotation;
-
     //drag / frake gravity
 
-    Vector3 bodyForward = GetWorldVectorFromLocalVector(rotation, LOCAL_FORWARD);
-
     float dotForwardUp = Vector3DotProduct(bodyForward, LOCAL_UP);
-
-    float forwardSpeed = Vector3DotProduct(body.linearVelocity, bodyForward);
 
     float upDragTolerance = 0.1f;
 
@@ -111,30 +120,39 @@ void UpdatePlayer(Player &player, float dt)
 
     float stallDot = 0.6f;
 
-    if((forwardSpeed <= config.stallSpeed) && (dotForwardDown < stallDot))
-    {
-        player.pitchUp = false;
-        player.pitchDown = false;
-
-        player.rollLeft = false;
-        player.rollRight = false;
-
-        player.yawLeft = false;
-        player.yawRight = false;
-
-        ApplyTorque(body, axisOfRotation, STALL_FORCE);
-    }
+    if(forwardSpeed <= config.stallSpeed) player.stalling = true;
+    else if (forwardSpeed > config.recoverySpeed) player.stalling = false;
+    
+    if(player.stalling && dotForwardDown < stallDot) ApplyTorque(body, axisOfRotation, STALL_FORCE);
 }
 
-void UpdateCameraTransform(const Transform &targerTransform, float dt)
+void UpdateCameraTransform(const Player& player, const Transform &targerTransform, float dt)
 {
+    const Body& body = player.aircraft.body;
+
+    const AircraftConfig& config = GetAircraftConfig(player.aircraft);
+
+    const Quaternion& rotation = body.transform.rotation;
+
+    Vector3 bodyForward = GetWorldVectorFromLocalVector(rotation, LOCAL_FORWARD);
+
+    float forwardSpeed = Vector3DotProduct(player.aircraft.body.linearVelocity, bodyForward);
+
     Vector3 rotatedOffset = Vector3RotateByQuaternion(cameraOffset, targerTransform.rotation);
 
     Vector3 targetForward = GetWorldVectorFromLocalVector(targerTransform.rotation, LOCAL_FORWARD);
 
+    float alpha = 5.0f;
+
+    float t = alpha * dt;
+
+    lastFrameCameraOffset += Vector3Scale(Vector3Subtract(rotatedOffset, lastFrameCameraOffset), t);
+
     camera.up = GetWorldVectorFromLocalVector(targerTransform.rotation, LOCAL_UP);
     
-    camera.target = targerTransform.translation + targetForward;
+    camera.target = targerTransform.translation + targetForward * 200.0f;
 
-    camera.position = targerTransform.translation + rotatedOffset;
+    camera.position = targerTransform.translation + lastFrameCameraOffset;
+
+    camera.fovy = BASE_FOVY * CalculateCameraFOVFactor(forwardSpeed, config);
 }

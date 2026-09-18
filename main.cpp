@@ -4,7 +4,7 @@
 
 #include "player.h"
 
-int windowWidth = 800;
+int windowWidth = 1200;
 int windowHeight = 800;
 
 Player player;
@@ -37,7 +37,7 @@ int main()
 
         UpdateBody(player.aircraft.body, dt);
 
-        UpdateCameraTransform(player.aircraft.body.transform, dt);
+        UpdateCameraTransform(player, player.aircraft.body.transform, dt);
 
         std::cout<<"forward speed: "<<GetForwardSpeed(player)<<"\n";
 
