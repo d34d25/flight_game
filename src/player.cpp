@@ -61,6 +61,69 @@ void UpdatePlayer(Player &player, float dt)
     }
 
     ApplyForceLocal(body, LOCAL_FORWARD, thrust);
+
+    //plane physics
+
+    const Quaternion& rotation = body.transform.rotation;
+
+    //drag / frake gravity
+
+    Vector3 bodyForward = GetWorldVectorFromLocalVector(rotation, LOCAL_FORWARD);
+
+    float dotForwardUp = Vector3DotProduct(bodyForward, LOCAL_UP);
+
+    float forwardSpeed = Vector3DotProduct(body.linearVelocity, bodyForward);
+
+    float upDragTolerance = 0.1f;
+
+    if(dotForwardUp > upDragTolerance)
+    {
+        if(forwardSpeed > 0.0f) ApplyForceLocal(body, LOCAL_BACKWARD, FAKE_GRAVITY * dotForwardUp);
+    }
+    else if(dotForwardUp < -upDragTolerance)
+    {
+        ApplyForceLocal(body, LOCAL_BACKWARD, FAKE_GRAVITY * dotForwardUp);
+    }
+
+    //fake banking
+
+    Vector3 bodyRight = GetWorldVectorFromLocalVector(rotation, LOCAL_RIGHT);
+
+    float dotRight = Vector3DotProduct(LOCAL_UP, bodyRight);
+
+    ApplyTorqueLocal(body, LOCAL_UP, BANK * -dotRight);
+
+    //upside down case
+
+    Vector3 bodyUp = GetWorldVectorFromLocalVector(rotation, LOCAL_UP);
+
+    float dotUp = Vector3DotProduct(LOCAL_UP, bodyUp);
+
+    if(dotUp <= -0.1f) ApplyTorqueLocal(body, LOCAL_RIGHT, BANK_PITCH * dotUp);
+
+    //fake stall
+
+    Vector3 axisOfRotation = Vector3CrossProduct(bodyForward, LOCAL_DOWN);
+
+    axisOfRotation = Vector3Normalize(axisOfRotation);
+
+    float dotForwardDown = Vector3DotProduct(LOCAL_DOWN, bodyForward);
+
+    float stallDot = 0.6f;
+
+    if((forwardSpeed <= config.stallSpeed) && (dotForwardDown < stallDot))
+    {
+        player.pitchUp = false;
+        player.pitchDown = false;
+
+        player.rollLeft = false;
+        player.rollRight = false;
+
+        player.yawLeft = false;
+        player.yawRight = false;
+
+        ApplyTorque(body, axisOfRotation, STALL_FORCE);
+    }
 }
 
 void UpdateCameraTransform(const Transform &targerTransform, float dt)

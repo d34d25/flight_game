@@ -39,6 +39,8 @@ int main()
 
         UpdateCameraTransform(player.aircraft.body.transform, dt);
 
+        std::cout<<"forward speed: "<<GetForwardSpeed(player)<<"\n";
+
         BeginDrawing();
 
         ClearBackground(SKYBLUE);

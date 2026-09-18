@@ -2,6 +2,14 @@
 
 #include "aircraft.h"
 
+constexpr float FAKE_GRAVITY = 20.0f;
+
+constexpr float BANK = 0.2f;
+
+constexpr float BANK_PITCH = 0.1f;
+
+constexpr float STALL_FORCE = 1.0f;
+
 inline Camera3D camera = {};
 
 inline Vector3 cameraOffset = {0.0f, 0.7f, -6.0f};
@@ -10,17 +18,17 @@ struct Player
 {
     Aircraft aircraft;
 
-    bool pitchUp;
-    bool pitchDown;
+    bool pitchUp = false;
+    bool pitchDown = false;
     
-    bool rollRight;
-    bool rollLeft;
+    bool rollRight = false;
+    bool rollLeft = false;
 
-    bool yawRight;
-    bool yawLeft;
+    bool yawRight = false;
+    bool yawLeft = false;
 
-    bool throttleUp;
-    bool throttleDown;
+    bool throttleUp = false;
+    bool throttleDown = false;
 };
 
 void UpdatePlayerInput(Player& player);
@@ -43,4 +51,13 @@ inline void InitCamera()
 inline void InitPlayer(Player& player)
 {
     player.aircraft = InitAircraft(F_15);
+}
+
+inline float GetForwardSpeed(Player& player)
+{
+    const Body& body = player.aircraft.body;
+
+    Vector3 forwardVec = GetWorldVectorFromLocalVector(body.transform.rotation, LOCAL_FORWARD);
+
+    return Vector3DotProduct(body.linearVelocity, forwardVec);
 }

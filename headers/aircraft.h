@@ -21,6 +21,14 @@ struct AircraftConfig
     float forwardDrag;
     float sideDrag;
 
+    //actual speed
+    float mobilityLoseLow;
+    float mobilityLoseHigh;
+
+    float stallSpeed;
+    float recoverySpeed;
+
+    //thust
     float maxThrust;
     float idleThrust;
 
@@ -53,15 +61,18 @@ inline void LoadAssets()
         .forwardDrag = 0.2f,
         .sideDrag = 4.0f,
 
-        .maxThrust = 500,
-        .idleThrust = 100,
+        .stallSpeed = 20.0f,
+        .recoverySpeed = 30.0f,
 
-        .acceleration = 200,
-        .breakPower = 60,
+        .maxThrust = 60.0f,
+        .idleThrust = 20.0f,
 
-        .pitch = 2,
-        .roll = 5,
-        .yaw = 1
+        .acceleration = 8.0f,
+        .breakPower = 20.0f,
+
+        .pitch = 2.0f,
+        .roll = 5.0f,
+        .yaw = 1.0f
     };
 }
 
@@ -96,4 +107,4 @@ inline Model& GetAircraftModel(const Aircraft& aircraft)
 inline const AircraftConfig& GetAircraftConfig(const Aircraft& aircraft)
 {
     return aircraftsDB[aircraft.type];
-} 
+}
