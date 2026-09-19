@@ -47,17 +47,34 @@ void UpdatePlayer(Player &player, float dt)
     if(player.yawRight) ApplyTorqueLocal(body, LOCAL_UP, -config.yaw * mobilityFactor);
     else if(player.yawLeft) ApplyTorqueLocal(body, LOCAL_UP, config.yaw * mobilityFactor);
 
+    float engineGlowChangeRate = 0.25f;
+    float idleEngineGlow = 0.5f;
+
     if(player.throttleUp)
     {
         thrust += config.acceleration * dt;
 
-        if(thrust >= config.maxThrust) thrust = config.maxThrust;
+        player.engineGlow += engineGlowChangeRate * dt;
+
+        if(thrust >= config.maxThrust)
+        {
+            thrust = config.maxThrust;
+            
+            player.engineGlow = 1.0f;
+        }
     }
     else if(player.throttleDown)
     {
         thrust -= config.breakPower * dt;
 
-        if(thrust <= 0.0f) thrust = 0.0f;
+        player.engineGlow -= engineGlowChangeRate * dt;
+
+        if(thrust <= 0.0f)
+        {
+            thrust = 0.0f;
+
+            player.engineGlow = 0.0f;
+        }
     }
     else
     {
@@ -65,15 +82,33 @@ void UpdatePlayer(Player &player, float dt)
         {
             thrust += THRUST_RECOVERY_BELOW_IDLE * dt;
 
-            if(thrust >= config.idleThrust) thrust = config.idleThrust;
+            player.engineGlow += engineGlowChangeRate * dt;
+
+            if(thrust >= config.idleThrust)
+            {
+                thrust = config.idleThrust;
+
+                player.engineGlow = idleEngineGlow;
+            }
         }
         else
         {
             thrust -= THRUST_RECOVERY_ABOVE_IDLE * dt;
 
-            if(thrust <= config.idleThrust) thrust = config.idleThrust;
+            player.engineGlow -= engineGlowChangeRate * dt;
+
+            if(thrust <= config.idleThrust)
+            {
+                thrust = config.idleThrust;
+
+                player.engineGlow = idleEngineGlow;
+            }
         }
     }
+
+    player.engineGlow = Clamp(player.engineGlow, 0.0f, 1.0f);
+
+    SetShaderValue(player.engineShader, player.engineBrightnessLoc, &player.engineGlow, SHADER_UNIFORM_FLOAT);
 
     ApplyForceLocal(body, LOCAL_FORWARD, thrust);
 

@@ -10,7 +10,7 @@ constexpr float BANK_PITCH = 0.1f;
 
 constexpr float STALL_FORCE = 1.0f;
 
-constexpr float BASE_FOVY = 60.0f;
+constexpr float BASE_FOVY = 45.0f;
 
 inline Camera3D camera = {};
 
@@ -20,7 +20,13 @@ inline Vector3 lastFrameCameraOffset = {0.0f, 0.7f, -6.0f};
 
 struct Player
 {
+    Shader engineShader;
+
     Aircraft aircraft;
+
+    float engineGlow;
+
+    int engineBrightnessLoc;
 
     bool pitchUp = false;
     bool pitchDown = false;
@@ -58,6 +64,16 @@ inline void InitPlayer(Player& player)
 {
     player.aircraft = InitAircraft(F_15);
     player.aircraft.body.transform.translation.y = 200.0f;
+    
+    player.engineGlow = 1.0f;
+
+    player.engineShader = LoadShader("shaders/flat.vs", "shaders/engine.fs");
+
+    player.engineBrightnessLoc = GetShaderLocation(player.engineShader, "engineBrightness");
+
+    SetShaderValue(player.engineShader, player.engineBrightnessLoc, &player.engineGlow, SHADER_UNIFORM_FLOAT);
+
+    GetAircraftModel(player.aircraft).materials[1].shader = player.engineShader;
 }
 
 inline float GetForwardSpeed(Player& player)
