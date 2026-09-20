@@ -26,6 +26,9 @@ struct Scene
     float minHeight;
     float maxHeight;
 
+    float baseMinHeight;
+    float baseMaxHeight;
+
     float skyRadius;
     //------------------
 

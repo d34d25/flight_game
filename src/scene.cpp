@@ -39,8 +39,11 @@ void InitScene(Scene &scene)
     scene.topColor = {25,25,100,255};
     scene.bottomColor = WHITE;
 
-    scene.maxHeight = scene.skyRadius;
-    scene.minHeight = -scene.skyRadius;
+    scene.maxHeight = scene.skyRadius * 0.75f;
+    scene.minHeight = 0.0f;
+
+    scene.baseMaxHeight = scene.maxHeight;
+    scene.baseMinHeight = scene.minHeight;
 
     scene.skyShader = LoadShader("shaders/sky.vs", "shaders/sky.fs");
 
@@ -81,10 +84,10 @@ void UpdateScene(Scene &scene, float dt)
 
     const float playerY = player.aircraft.body.transform.translation.y;
 
-    float compressionFactor = playerY * 0.0001f;
+    float compressionFactor = playerY * 0.001f;
 
-    scene.maxHeight = scene.skyRadius / (1.0f + compressionFactor);
-    scene.minHeight = -scene.skyRadius / (1.0f + compressionFactor);
+    scene.maxHeight = scene.baseMaxHeight / (1.0f + compressionFactor);
+    scene.minHeight = -scene.baseMinHeight / (1.0f + compressionFactor);
 
     SetShaderValue(scene.skyShader, scene.minHeightLoc, &scene.minHeight, SHADER_UNIFORM_FLOAT);
     SetShaderValue(scene.skyShader, scene.maxHeightLoc, &scene.maxHeight, SHADER_UNIFORM_FLOAT);
