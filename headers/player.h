@@ -74,6 +74,10 @@ inline void InitPlayer(Player& player)
     SetShaderValue(player.engineShader, player.engineBrightnessLoc, &player.engineGlow, SHADER_UNIFORM_FLOAT);
 
     GetAircraftModel(player.aircraft).materials[1].shader = player.engineShader;
+
+    Vector3 bodyDirection = GetWorldVectorFromLocalVector(player.aircraft.body.transform.rotation, LOCAL_FORWARD);
+
+    player.aircraft.body.linearVelocity = Vector3Normalize(bodyDirection) * aircraftsDB[F_15].idleSpeed;
 }
 
 inline float GetForwardSpeed(Player& player)
@@ -105,10 +109,20 @@ inline void ResetInputPlayer(Player& player)
     player.throttleDown = false;
 }
 
+inline float GetMobilityLoseLow(const AircraftConfig& config)
+{
+    return config.idleSpeed * 0.75f;
+}
+
+inline float GetMobilityLoseHigh(const AircraftConfig& config)
+{
+    return config.idleSpeed * 1.25f;
+}
+
 inline float CalculateMobilityFactor(float forwardSpeed, const AircraftConfig& config)
 {
-    float mobilityLoseLow = config.idleSpeed * 0.75f;
-    float mobilityLoseHigh = config.idleSpeed * 1.25f;
+    float mobilityLoseLow = GetMobilityLoseLow(config);
+    float mobilityLoseHigh = GetMobilityLoseHigh(config);
 
     float minMobilityFactor = 0.3f;
     float maxMobilityFactor = 0.4f;
@@ -133,8 +147,8 @@ inline float CalculateMobilityFactor(float forwardSpeed, const AircraftConfig& c
 
 inline float CalculateCameraFOVFactor(float forwardSpeed, const AircraftConfig& config)
 {
-    float fovThresholdLow = config.idleSpeed * 0.75f;
-    float fovThresholdHigh = config.idleSpeed * 1.25f;
+    float fovThresholdLow = GetMobilityLoseLow(config);
+    float fovThresholdHigh = GetMobilityLoseHigh(config);
 
     float minFOVFactor = 0.85f;
     float maxFOVFactor = 1.15f;
@@ -155,4 +169,22 @@ inline float CalculateCameraFOVFactor(float forwardSpeed, const AircraftConfig& 
     }
 
     return fovFactor;
+}
+
+inline float CalculateBankFactor(float forwardSpeed, const AircraftConfig& config)
+{
+    float bankFactor = 1.0f;
+
+    float bankForceLose = GetMobilityLoseHigh(config);
+
+    float minBankFactor = 0.4f;
+
+    if (forwardSpeed >= bankForceLose)
+    {
+        bankFactor = 1 - (1 - minBankFactor) * (forwardSpeed - bankForceLose) / (config.maxSpeed - bankForceLose);
+
+        bankFactor = Clamp(bankFactor, minBankFactor, 1.0f);
+    }
+
+    return bankFactor;
 }

@@ -56,12 +56,7 @@ void UpdatePlayer(Player &player, float dt)
 
         player.engineGlow += engineGlowChangeRate * dt;
 
-        if(thrust >= config.maxThrust)
-        {
-            thrust = config.maxThrust;
-            
-            player.engineGlow = 1.0f;
-        }
+        if(thrust >= config.maxThrust) thrust = config.maxThrust;
     }
     else if(player.throttleDown)
     {
@@ -69,12 +64,7 @@ void UpdatePlayer(Player &player, float dt)
 
         player.engineGlow -= engineGlowChangeRate * dt;
 
-        if(thrust <= 0.0f)
-        {
-            thrust = 0.0f;
-
-            player.engineGlow = 0.0f;
-        }
+        if(thrust <= 0.0f) thrust = 0.0f;
     }
     else
     {
@@ -84,12 +74,9 @@ void UpdatePlayer(Player &player, float dt)
 
             player.engineGlow += engineGlowChangeRate * dt;
 
-            if(thrust >= config.idleThrust)
-            {
-                thrust = config.idleThrust;
+            if(player.engineGlow >= idleEngineGlow) player.engineGlow = idleEngineGlow;
 
-                player.engineGlow = idleEngineGlow;
-            }
+            if(thrust >= config.idleThrust) thrust = config.idleThrust;
         }
         else
         {
@@ -97,12 +84,9 @@ void UpdatePlayer(Player &player, float dt)
 
             player.engineGlow -= engineGlowChangeRate * dt;
 
-            if(thrust <= config.idleThrust)
-            {
-                thrust = config.idleThrust;
+            if(player.engineGlow <= idleEngineGlow) player.engineGlow = idleEngineGlow;
 
-                player.engineGlow = idleEngineGlow;
-            }
+            if(thrust <= config.idleThrust) thrust = config.idleThrust;
         }
     }
 
@@ -131,11 +115,13 @@ void UpdatePlayer(Player &player, float dt)
 
     //fake banking
 
+    float bankFactor = CalculateBankFactor(forwardSpeed, config);
+
     Vector3 bodyRight = GetWorldVectorFromLocalVector(rotation, LOCAL_RIGHT);
 
     float dotRight = Vector3DotProduct(LOCAL_UP, bodyRight);
 
-    ApplyTorqueLocal(body, LOCAL_UP, BANK * -dotRight);
+    ApplyTorqueLocal(body, LOCAL_UP, BANK * -dotRight * bankFactor);
 
     //upside down case
 
@@ -143,7 +129,7 @@ void UpdatePlayer(Player &player, float dt)
 
     float dotUp = Vector3DotProduct(LOCAL_UP, bodyUp);
 
-    if(dotUp <= -0.1f) ApplyTorqueLocal(body, LOCAL_RIGHT, BANK_PITCH * dotUp);
+    if(dotUp <= -0.1f) ApplyTorqueLocal(body, LOCAL_RIGHT, BANK_PITCH * dotUp * bankFactor);
 
     //fake stall
 

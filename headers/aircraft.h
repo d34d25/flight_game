@@ -82,7 +82,7 @@ inline void LoadAssets()
 
     f15.pitch = 1.25f;
     f15.roll = 4.5;
-    f15.yaw = 0.25f;
+    f15.yaw = 0.35f;
 }
 
 inline Body InitAircraftBody(AircraftType type)
