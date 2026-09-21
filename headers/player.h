@@ -2,14 +2,6 @@
 
 #include "aircraft.h"
 
-constexpr float FAKE_GRAVITY = 8.0f;
-
-constexpr float BANK = 0.2f;
-
-constexpr float BANK_PITCH = 0.1f;
-
-constexpr float STALL_FORCE = 1.0f;
-
 constexpr float BASE_FOVY = 45.0f;
 
 inline Camera3D camera = {};

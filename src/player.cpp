@@ -70,7 +70,7 @@ void UpdatePlayer(Player &player, float dt)
     {
         if(thrust < config.idleThrust)
         {
-            thrust += THRUST_RECOVERY_BELOW_IDLE * dt;
+            thrust += config.recoveryBelowIdle * dt;
 
             player.engineGlow += engineGlowChangeRate * dt;
 
@@ -80,7 +80,7 @@ void UpdatePlayer(Player &player, float dt)
         }
         else
         {
-            thrust -= THRUST_RECOVERY_ABOVE_IDLE * dt;
+            thrust -= config.recoveryAboveIdle * dt;
 
             player.engineGlow -= engineGlowChangeRate * dt;
 
@@ -106,11 +106,11 @@ void UpdatePlayer(Player &player, float dt)
 
     if(dotForwardUp > upDragTolerance)
     {
-        if(forwardSpeed > 0.0f) ApplyForceLocal(body, LOCAL_BACKWARD, FAKE_GRAVITY * dotForwardUp);
+        if(forwardSpeed > 0.0f) ApplyForceLocal(body, LOCAL_BACKWARD, config.gravity * dotForwardUp);
     }
     else if(dotForwardUp < -upDragTolerance)
     {
-        ApplyForceLocal(body, LOCAL_BACKWARD, FAKE_GRAVITY * dotForwardUp);
+        ApplyForceLocal(body, LOCAL_BACKWARD, config.gravity * dotForwardUp);
     }
 
     //fake banking
@@ -121,7 +121,7 @@ void UpdatePlayer(Player &player, float dt)
 
     float dotRight = Vector3DotProduct(LOCAL_UP, bodyRight);
 
-    ApplyTorqueLocal(body, LOCAL_UP, BANK * -dotRight * bankFactor);
+    ApplyTorqueLocal(body, LOCAL_UP, config.bank * -dotRight * bankFactor);
 
     //upside down case
 
@@ -129,7 +129,7 @@ void UpdatePlayer(Player &player, float dt)
 
     float dotUp = Vector3DotProduct(LOCAL_UP, bodyUp);
 
-    if(dotUp <= -0.1f) ApplyTorqueLocal(body, LOCAL_RIGHT, BANK_PITCH * dotUp * bankFactor);
+    if(dotUp <= -0.1f) ApplyTorqueLocal(body, LOCAL_RIGHT, config.bankPitch * dotUp * bankFactor);
 
     //fake stall
 
@@ -144,7 +144,7 @@ void UpdatePlayer(Player &player, float dt)
     if(forwardSpeed <= config.stallSpeed) player.stalling = true;
     else if (forwardSpeed > config.recoverySpeed) player.stalling = false;
     
-    if(player.stalling && dotForwardDown < stallDot) ApplyTorque(body, axisOfRotation, STALL_FORCE);
+    if(player.stalling && dotForwardDown < stallDot) ApplyTorque(body, axisOfRotation, config.stallTorque);
 }
 
 void UpdateCameraTransform(const Player& player, const Transform &targerTransform, float dt)

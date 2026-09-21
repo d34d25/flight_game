@@ -2,9 +2,15 @@
 
 #include "body.h"
 
-constexpr float THRUST_RECOVERY_BELOW_IDLE = 10.0f; //when below thrust
+//forces
+constexpr float FAKE_GRAVITY = 40.0f;
 
-constexpr float THRUST_RECOVERY_ABOVE_IDLE = 5.0f; //when above thrust
+//torques
+constexpr float BANK = 0.1f;
+
+constexpr float BANK_PITCH = 0.05f;
+
+constexpr float STALL_TORQUE = 0.5f;
 
 enum AircraftType
 {
@@ -35,10 +41,19 @@ struct AircraftConfig
     float acceleration;
     float breakPower;
 
+    float recoveryAboveIdle;
+    float recoveryBelowIdle;
+
     //mobility
     float pitch;
     float roll;
     float yaw;
+
+    float gravity;
+
+    float bank;
+    float bankPitch;
+    float stallTorque;
 };
 
 struct Aircraft
@@ -49,9 +64,9 @@ struct Aircraft
     float thrust = 0.0f;
 };
 
-inline float GetThrustForDesiredSpeed(float desiredSpeed, float forwardDrag)
+inline float GetDesiredValue(float desiredValue, float drag)
 {
-    return desiredSpeed * forwardDrag;
+    return desiredValue * drag;
 }
 
 inline AircraftConfig aircraftsDB[AIRCRAFT_COUNT];
@@ -74,15 +89,25 @@ inline void LoadAssets()
     f15.stallSpeed = 30.0f;
     f15.recoverySpeed = 40.0f;
 
-    f15.maxThrust = GetThrustForDesiredSpeed(f15.maxSpeed, f15.forwardDrag);
-    f15.idleThrust = GetThrustForDesiredSpeed(f15.idleSpeed, f15.forwardDrag);
+    f15.maxThrust = GetDesiredValue(f15.maxSpeed, f15.forwardDrag);
+    f15.idleThrust = GetDesiredValue(f15.idleSpeed, f15.forwardDrag);
 
-    f15.acceleration = 8.0f;
-    f15.breakPower = 20.0f;
+    f15.acceleration = GetDesiredValue(40, f15.forwardDrag);
+    f15.breakPower = GetDesiredValue(100, f15.forwardDrag);
 
-    f15.pitch = 1.25f;
-    f15.roll = 4.5;
-    f15.yaw = 0.35f;
+    f15.recoveryAboveIdle = GetDesiredValue(30, f15.forwardDrag);
+    f15.recoveryBelowIdle = GetDesiredValue(25, f15.forwardDrag);
+
+    f15.pitch = GetDesiredValue(0.45f, f15.angularDrag.x);
+    f15.roll = GetDesiredValue(2.0f, f15.angularDrag.z);
+    f15.yaw = GetDesiredValue(0.125f, f15.angularDrag.y);
+
+    f15.gravity = GetDesiredValue(FAKE_GRAVITY, f15.forwardDrag);
+
+    f15.bank = GetDesiredValue(BANK, f15.angularDrag.y);
+    f15.bankPitch = GetDesiredValue(BANK_PITCH, f15.angularDrag.x);
+
+    f15.stallTorque = GetDesiredValue(STALL_TORQUE, (f15.angularDrag.x + f15.angularDrag.y) * 0.5f);
 }
 
 inline Body InitAircraftBody(AircraftType type)
