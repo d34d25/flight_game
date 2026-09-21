@@ -6,9 +6,9 @@
 constexpr float FAKE_GRAVITY = 40.0f;
 
 //torques
-constexpr float BANK = 0.1f;
+constexpr float BANK = 0.05f;
 
-constexpr float BANK_PITCH = 0.05f;
+constexpr float BANK_PITCH = 0.03f;
 
 constexpr float STALL_TORQUE = 0.5f;
 
@@ -102,12 +102,20 @@ inline void LoadAssets()
     f15.roll = GetDesiredValue(2.0f, f15.angularDrag.z);
     f15.yaw = GetDesiredValue(0.125f, f15.angularDrag.y);
 
-    f15.gravity = GetDesiredValue(FAKE_GRAVITY, f15.forwardDrag);
+    //common values
 
-    f15.bank = GetDesiredValue(BANK, f15.angularDrag.y);
-    f15.bankPitch = GetDesiredValue(BANK_PITCH, f15.angularDrag.x);
+    for(int i = 0; i < AIRCRAFT_COUNT; i++)
+    {
+        AircraftConfig& config = aircraftsDB[i];
 
-    f15.stallTorque = GetDesiredValue(STALL_TORQUE, (f15.angularDrag.x + f15.angularDrag.y) * 0.5f);
+        config.gravity = GetDesiredValue(FAKE_GRAVITY, config.forwardDrag);
+
+        config.bank = GetDesiredValue(BANK, config.angularDrag.y);
+
+        config.bankPitch = GetDesiredValue(BANK_PITCH, config.angularDrag.x);
+
+        config.stallTorque = GetDesiredValue(STALL_TORQUE, (config.angularDrag.x + config.angularDrag.y) * 0.5f);
+    }
 }
 
 inline Body InitAircraftBody(AircraftType type)
