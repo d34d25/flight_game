@@ -198,7 +198,9 @@ inline void ResetTrailPool(TrailPool& trailpool)
 
 void UpdateMissile(Missile *missile, float dt)
 {
-    missile->thrust = missile->maxThrust;
+    missile->thrust += missile->properties.acceleration * dt;
+
+    if(missile->thrust >= missile->maxThrust) missile->thrust = missile->maxThrust;
 
     ApplyForceLocal(missile->body, LOCAL_FORWARD, missile->thrust);
 
@@ -294,10 +296,16 @@ void SpawnMissile(MissilePool &missilePool, Vector3 position, float thrust, floa
         m->body.forwardDrag = drag;
         m->maxThrust = GetDesiredValue(missilePool.properties.maxSpeed, drag);
 
+        m->properties.acceleration = GetDesiredValue(missilePool.properties.acceleration, drag);
+
+        float thrustFactor = 0.5f;
+
+        m->thrust = m->maxThrust * thrustFactor;
+
         Vector3 direction = GetWorldVectorFromLocalVector(rotation, LOCAL_FORWARD);
 
-        m->body.linearVelocity = direction * missilePool.properties.maxSpeed;
-        m->thrust = thrust;
+        m->body.linearVelocity = direction * missilePool.properties.maxSpeed * thrustFactor;
+        //m->thrust = thrust;
 
         m->didHit = false;
         m->currentTime = 0.0f;
@@ -317,5 +325,7 @@ void InitMissileDB()
     standardMsl.firerate = 0.75f;
     standardMsl.lifeTime = 4.0f;
 
-    standardMsl.maxSpeed = 200.0f;
+    standardMsl.maxSpeed = 700.0f;
+
+    standardMsl.acceleration = 50.0f;
 }

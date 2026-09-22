@@ -102,7 +102,7 @@ inline void LoadAssets()
     f15.forwardDrag = 0.2f;
     f15.sideDrag = 4.0f;
 
-    f15.maxSpeed = 170.0f;
+    f15.maxSpeed = 250.0f;
     f15.idleSpeed = 120.0f;
 
     f15.stallSpeed = 70.0f;

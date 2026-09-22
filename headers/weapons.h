@@ -204,6 +204,8 @@ struct MissileProperties
     float missileSize;
 
     float firerate;
+
+    float acceleration;
 };
 
 struct Missile
