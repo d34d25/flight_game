@@ -2,6 +2,8 @@
 
 void InitScene(Scene &scene)
 {
+    scene.gameplayCanvas = LoadRenderTexture(CANVAS_WIDTH * SCALE, CANVAS_HEIGHT * SCALE);
+
     InitPlayer(scene.player);
     InitCamera();
 
@@ -97,7 +99,7 @@ void UpdateScene(Scene &scene, float dt)
     //std::cout<<"loc: "<<GetShaderLocation(scene.flatShader, "maxIntensity")<<"\n";
 }
 
-void DrawScene(Scene &scene)
+void DrawGameplay(Scene &scene)
 {
     rlPushMatrix();
 
@@ -125,24 +127,60 @@ void DrawScene(Scene &scene)
 
     DrawGrid(1000,10);
 
-    Matrix mScale = MatrixScale(1,1,1);
+    DrawAircraft(player.aircraft);
 
-    Matrix mRotation = QuaternionToMatrix(player.aircraft.body.transform.rotation);
+    DrawBullets(player.aircraft);
+}
 
-    Vector3& translation = player.aircraft.body.transform.translation;
+void DrawScene(Scene &scene)
+{
+    BeginTextureMode(scene.gameplayCanvas);
 
-    Matrix mTranslation = MatrixTranslate(translation.x, translation.y, translation.z);
+    BeginMode3D(camera);
+    
+    ClearBackground(SKYBLUE);
 
-    Matrix finalMatrix = MatrixMultiply(MatrixMultiply(mScale, mRotation), mTranslation);
+    DrawGameplay(scene);
 
-    GetAircraftModel(player.aircraft).transform = finalMatrix;
+    EndMode3D();
 
-    const Model& playerModel = GetAircraftModel(player.aircraft);
+    EndTextureMode();
 
-    DrawModel(playerModel, {0,0,0}, 1, WHITE);
+    ClearBackground(BLACK);
+
+    float screenW = (float)GetScreenWidth();
+    float screenH = (float)GetScreenHeight();
+
+    float scale = fminf(screenW / NATIVE_WIDTH, screenH / NATIVE_HEIGHT);
+
+    float offsetX = (screenW - NATIVE_WIDTH * scale) * 0.5f;
+    float offsetY = (screenH - NATIVE_HEIGHT * scale) * 0.5f;
+    
+    Rectangle sourceGamplayRec = {
+        0, 0, 
+        (float)scene.gameplayCanvas.texture.width,
+        (float)-scene.gameplayCanvas.texture.height
+    };
+
+    Rectangle destGameplayRec = {
+        offsetX, offsetY,
+        NATIVE_WIDTH,
+        NATIVE_HEIGHT
+    };
+
+    DrawTexturePro(
+        scene.gameplayCanvas.texture,
+        sourceGamplayRec,
+        destGameplayRec,
+        {0.0f,0.0f},
+        0.0f,
+        WHITE
+    );
 }
 
 void UnloadScene(Scene &scene)
 {
     UnloadShader(scene.flatShader);
+
+    UnloadRenderTexture(scene.gameplayCanvas);
 }

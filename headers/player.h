@@ -32,6 +32,8 @@ struct Player
     bool throttleUp = false;
     bool throttleDown = false;
 
+    bool firingBullet = false;
+
     bool stalling = true;
 };
 
@@ -55,6 +57,7 @@ inline void InitCamera()
 inline void InitPlayer(Player& player)
 {
     player.aircraft = InitAircraft(F_15);
+    
     player.aircraft.body.transform.translation.y = 200.0f;
     
     player.engineGlow = 1.0f;
@@ -116,8 +119,8 @@ inline float CalculateMobilityFactor(float forwardSpeed, const AircraftConfig& c
     float mobilityLoseLow = GetMobilityLoseLow(config);
     float mobilityLoseHigh = GetMobilityLoseHigh(config);
 
-    float minMobilityFactor = 0.3f;
-    float maxMobilityFactor = 0.4f;
+    float minMobilityFactor = 0.6f;
+    float maxMobilityFactor = 0.7f;
 
     float mobilityFactor = 1.0f;
 
@@ -169,7 +172,7 @@ inline float CalculateBankFactor(float forwardSpeed, const AircraftConfig& confi
 
     float bankForceLose = GetMobilityLoseHigh(config);
 
-    float minBankFactor = 0.4f;
+    float minBankFactor = 0.42f;
 
     if (forwardSpeed >= bankForceLose)
     {

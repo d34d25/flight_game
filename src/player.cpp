@@ -5,6 +5,8 @@ void UpdatePlayerInput(Player &player)
     player.throttleUp = IsKeyDown(KEY_W);
     player.throttleDown = IsKeyDown(KEY_S);
 
+    player.firingBullet = IsKeyDown(KEY_LEFT_SHIFT);
+
     if(player.stalling)
     {
         RemoveControlPlayer(player);
@@ -33,6 +35,21 @@ void UpdatePlayer(Player &player, float dt)
     const Quaternion& rotation = body.transform.rotation;
 
     Vector3 bodyForward = GetWorldVectorFromLocalVector(rotation, LOCAL_FORWARD);
+
+    BulletPool& bulletpool = player.aircraft.bulletpool;
+
+    FireBullet(
+        bulletpool,
+        bodyForward,
+        rotation,
+        body.transform.translation,
+        config.gunOffset,
+        body.linearVelocity,
+        dt,
+        player.firingBullet
+    );
+
+    UpdateBulletPool(bulletpool, dt);
 
     float forwardSpeed = Vector3DotProduct(body.linearVelocity, bodyForward);
 
@@ -137,6 +154,11 @@ void UpdatePlayer(Player &player, float dt)
 
     axisOfRotation = Vector3Normalize(axisOfRotation);
 
+    float stallDrag = fabs(axisOfRotation.x) * config.angularDrag.x +
+    fabs(axisOfRotation.y) * config.angularDrag.y + fabs(axisOfRotation.z) * config.angularDrag.z;
+
+    float stallTorque = GetDesiredValue(STALL_TORQUE, stallDrag);
+
     float dotForwardDown = Vector3DotProduct(LOCAL_DOWN, bodyForward);
 
     float stallDot = 0.6f;
@@ -144,7 +166,7 @@ void UpdatePlayer(Player &player, float dt)
     if(forwardSpeed <= config.stallSpeed) player.stalling = true;
     else if (forwardSpeed > config.recoverySpeed) player.stalling = false;
     
-    if(player.stalling && dotForwardDown < stallDot) ApplyTorque(body, axisOfRotation, config.stallTorque);
+    if(player.stalling && dotForwardDown < stallDot) ApplyTorque(body, axisOfRotation, stallTorque);
 }
 
 void UpdateCameraTransform(const Player& player, const Transform &targerTransform, float dt)
@@ -177,3 +199,12 @@ void UpdateCameraTransform(const Player& player, const Transform &targerTransfor
 
     camera.fovy = BASE_FOVY * CalculateCameraFOVFactor(forwardSpeed, config);
 }
+
+
+/*float stallT = STALL_TORQUE;
+
+    float stallX = axisOfRotation.x * config.angularDrag.x;
+    float stallY = axisOfRotation.y * config.angularDrag.y;
+    float stallZ = axisOfRotation.z * config.angularDrag.z;
+
+    stallT = stallT + stallX + stallY + stallZ;*/

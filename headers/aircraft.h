@@ -2,6 +2,8 @@
 
 #include "body.h"
 
+#include "weapons.h"
+
 //forces
 constexpr float FAKE_GRAVITY = 40.0f;
 
@@ -22,7 +24,11 @@ struct AircraftConfig
 {
     Model model;
 
+    Vector3 gunOffset;
+
     Vector3 angularDrag;
+
+    BulletType gunType;
 
     float forwardDrag;
     float sideDrag;
@@ -53,13 +59,15 @@ struct AircraftConfig
 
     float bank;
     float bankPitch;
-    float stallTorque;
 };
 
 struct Aircraft
 {
-    AircraftType type;
     Body body;
+
+    BulletPool bulletpool;
+
+    AircraftType type;
 
     float thrust = 0.0f;
 };
@@ -73,6 +81,8 @@ inline AircraftConfig aircraftsDB[AIRCRAFT_COUNT];
 
 inline void LoadAssets()
 {
+    InitGunDB();
+
     //F-15
     AircraftConfig& f15 = aircraftsDB[F_15];
 
@@ -102,6 +112,15 @@ inline void LoadAssets()
     f15.roll = GetDesiredValue(2.0f, f15.angularDrag.z);
     f15.yaw = GetDesiredValue(0.125f, f15.angularDrag.y);
 
+    f15.gunType = VULKAN;
+
+    switch (f15.gunType)
+    {
+    case VULKAN: f15.gunOffset = {-0.4f,-0.25f,-0.5f}; break;
+    
+    default: f15.gunOffset = {-0.4f,-0.25f,-0.5f}; break;
+    }
+
     //common values
 
     for(int i = 0; i < AIRCRAFT_COUNT; i++)
@@ -113,8 +132,6 @@ inline void LoadAssets()
         config.bank = GetDesiredValue(BANK, config.angularDrag.y);
 
         config.bankPitch = GetDesiredValue(BANK_PITCH, config.angularDrag.x);
-
-        config.stallTorque = GetDesiredValue(STALL_TORQUE, (config.angularDrag.x + config.angularDrag.y) * 0.5f);
     }
 }
 
@@ -133,10 +150,12 @@ inline Body InitAircraftBody(AircraftType type)
 inline Aircraft InitAircraft(AircraftType type)
 {
     Aircraft aircraft = {};
-    
+
     aircraft.type = type;
 
     aircraft.body = InitAircraftBody(aircraft.type);
+
+    InitBulletPool(aircraft.bulletpool, gunsDB[aircraftsDB[type].gunType], 50);
 
     return aircraft;
 }

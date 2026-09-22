@@ -4,9 +4,6 @@
 
 #include "scene.h"
 
-int windowWidth = 1200;
-int windowHeight = 800;
-
 Scene testScene;
 
 //leaving this for emscripten
@@ -17,7 +14,7 @@ void RunGame()
 
 int main()
 {
-    InitWindow(windowWidth, windowHeight, "");
+    InitWindow(NATIVE_WIDTH, NATIVE_HEIGHT, "");
 
     LoadAssets();
 
@@ -34,12 +31,8 @@ int main()
         BeginDrawing();
 
         ClearBackground(SKYBLUE);
-
-        BeginMode3D(camera);
         
         DrawScene(testScene);
-
-        EndMode3D();
 
         DrawFPS(10,10);
 

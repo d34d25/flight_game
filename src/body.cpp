@@ -68,9 +68,9 @@ void UpdateBody(Body &body, float dt)
     float rollDrag = body.angularDrag.z;
     float yawDrag = body.angularDrag.y;
 
-    if(pitchDrag > maxAngularDrag) pitchDrag = maxDrag;
-    if(rollDrag > maxAngularDrag) rollDrag = maxDrag;
-    if(yawDrag > maxAngularDrag) yawDrag = maxDrag;
+    if(pitchDrag > maxAngularDrag) pitchDrag = maxAngularDrag;
+    if(rollDrag > maxAngularDrag) rollDrag = maxAngularDrag;
+    if(yawDrag > maxAngularDrag) yawDrag = maxAngularDrag;
 
     float pitchSpeed = Vector3DotProduct(body.angularVelocity, bodyPitch);
     float rollSpeed = Vector3DotProduct(body.angularVelocity, bodyRoll);
