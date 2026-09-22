@@ -95,9 +95,7 @@ void InitGunDB()
 
 void UpdateMissile(Missile *missile, float dt)
 {
-    missile->thrust += missile->acceleration * dt;
-
-    if(missile->thrust >= missile->maxThrust) missile->thrust = missile->maxThrust;
+    missile->thrust = missile->maxThrust;
 
     ApplyForceLocal(missile->body, LOCAL_FORWARD, missile->thrust);
 
@@ -122,8 +120,6 @@ void InitMissilePool(MissilePool &missilePool, MissileProperties properties, int
 
         tempMissile->maxSpeed = properties.maxSpeed;
         tempMissile->maxThrust = 1.0f;
-
-        tempMissile->acceleration = properties.acceleration;
 
         tempMissile->body.angularDrag = {MSL_ANGULAR_DRAG,MSL_ANGULAR_DRAG,MSL_ANGULAR_DRAG};
 
@@ -167,7 +163,7 @@ void UpdateMissilePool(MissilePool &missilePool, float dt)
     }
 }
 
-void SpawnMissile(MissilePool &missilePool, Vector3 position, Vector3 initialVelocity, float thrust, float drag, Quaternion rotation)
+void SpawnMissile(MissilePool &missilePool, Vector3 position, float thrust, float drag, Quaternion rotation)
 {
     if(!missilePool.inactiveMissiles.empty())
     {
@@ -179,11 +175,11 @@ void SpawnMissile(MissilePool &missilePool, Vector3 position, Vector3 initialVel
 
         //drag and forward forces calculated here to match the drag of the shooter
         m->body.forwardDrag = drag;
-
-        m->acceleration = GetDesiredValue(missilePool.properties.acceleration, drag);
         m->maxThrust = GetDesiredValue(missilePool.properties.maxSpeed, drag);
 
-        m->body.linearVelocity = initialVelocity;
+        Vector3 direction = GetWorldVectorFromLocalVector(rotation, LOCAL_FORWARD);
+
+        m->body.linearVelocity = direction * missilePool.properties.maxSpeed;
         m->thrust = thrust;
 
         m->didHit = false;
@@ -204,7 +200,5 @@ void InitMissileDB()
     standardMsl.firerate = 1.0f;
     standardMsl.lifeTime = 4.0f;
 
-    standardMsl.maxSpeed = 1200.0f;
-
-    standardMsl.acceleration = 3000.0f;
+    standardMsl.maxSpeed = 200.0f;
 }

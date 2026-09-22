@@ -94,7 +94,9 @@ void UpdateScene(Scene &scene, float dt)
     SetShaderValue(scene.skyShader, scene.minHeightLoc, &scene.minHeight, SHADER_UNIFORM_FLOAT);
     SetShaderValue(scene.skyShader, scene.maxHeightLoc, &scene.maxHeight, SHADER_UNIFORM_FLOAT);
 
-    //std::cout<<"forward speed: "<<GetForwardSpeed(player)<<"\n";
+    std::cout<<"forward speed: "<<GetForwardSpeed(player)<<"\n";
+
+    std::cout<<"thrust: "<<player.aircraft.thrust<<"\n";
 
     //std::cout<<"loc: "<<GetShaderLocation(scene.flatShader, "maxIntensity")<<"\n";
 }

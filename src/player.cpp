@@ -117,7 +117,6 @@ void UpdatePlayer(Player &player, float dt)
         rotation,
         body.transform.translation,
         config.mslOffset,
-        body.linearVelocity,
         thrust,
         body.forwardDrag,
         dt,

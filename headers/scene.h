@@ -6,8 +6,8 @@
 
 #include "rlgl.h"
 
-constexpr float NATIVE_WIDTH = 1920;
-constexpr float NATIVE_HEIGHT = 1080;
+constexpr float NATIVE_WIDTH = 1600;
+constexpr float NATIVE_HEIGHT = 900;
 
 constexpr float CANVAS_WIDTH = 256;
 constexpr float CANVAS_HEIGHT = 144;

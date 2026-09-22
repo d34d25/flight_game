@@ -129,8 +129,6 @@ struct MissileProperties
 
     float maxSpeed;
 
-    float acceleration;
-
     float missileSize;
 
     float firerate;
@@ -151,8 +149,6 @@ struct Missile
     float maxThrust;
 
     float thrust;
-
-    float acceleration;
 
     bool didHit;
 };
@@ -176,7 +172,7 @@ void InitMissilePool(MissilePool& missilePool, MissileProperties properties, int
 
 void UpdateMissilePool(MissilePool& missilePool, float dt);
 
-void SpawnMissile(MissilePool& missilePool, Vector3 position, Vector3 initialVelocity, float thrust, float drag, Quaternion rotation = QuaternionIdentity());
+void SpawnMissile(MissilePool& missilePool, Vector3 position, float thrust, float drag, Quaternion rotation = QuaternionIdentity());
 
 enum MissileType
 {
@@ -193,7 +189,6 @@ inline void FireMissile(
     Quaternion rotation,
     Vector3 position,
     Vector3 offset,
-    Vector3 linearVelocity,
     float thrust,
     float drag,
     float dt,
@@ -208,7 +203,7 @@ inline void FireMissile(
 
         Vector3 mslSpawnPos = position + Vector3RotateByQuaternion(offset, normRotation);
 
-        SpawnMissile(missilepool, mslSpawnPos, linearVelocity, thrust, drag, normRotation);
+        SpawnMissile(missilepool, mslSpawnPos, thrust, drag, normRotation);
         
         missilepool.fireTimer = missilepool.properties.firerate;
     }
