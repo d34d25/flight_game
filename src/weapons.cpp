@@ -134,6 +134,8 @@ void InitMissilePool(MissilePool &missilePool, MissileProperties properties, int
 
 void UpdateMissilePool(MissilePool &missilePool, float dt)
 {
+    if(missilePool.fireTimer > 0.0f) missilePool.fireTimer -= dt;
+    
     for(int i = 0; i < missilePool.activeMissiles.size();)
     {
         Missile* m = missilePool.activeMissiles[i];
@@ -197,7 +199,7 @@ void InitMissileDB()
     MissileProperties& standardMsl = missilesDB[STANDARD_MSL];
 
     standardMsl.missileSize = 0.5f;
-    standardMsl.firerate = 1.0f;
+    standardMsl.firerate = 0.75f;
     standardMsl.lifeTime = 4.0f;
 
     standardMsl.maxSpeed = 200.0f;

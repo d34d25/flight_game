@@ -184,7 +184,7 @@ inline MissileProperties missilesDB[MISSILE_COUNT];
 
 void InitMissileDB();
 
-inline void FireMissile(
+inline bool FireMissile(
     MissilePool& missilepool,
     Quaternion rotation,
     Vector3 position,
@@ -195,8 +195,6 @@ inline void FireMissile(
     bool condition = true
 )
 {
-    if(missilepool.fireTimer > 0.0f) missilepool.fireTimer -= dt;
-
     if(condition && missilepool.fireTimer <= 0.0f)
     {
         Quaternion normRotation = QuaternionNormalize(rotation);
@@ -205,8 +203,12 @@ inline void FireMissile(
 
         SpawnMissile(missilepool, mslSpawnPos, thrust, drag, normRotation);
         
-        missilepool.fireTimer = missilepool.properties.firerate;
+        //missilepool.fireTimer = missilepool.properties.firerate;
+
+        return true;
     }
+
+    return false;
 }
 
 

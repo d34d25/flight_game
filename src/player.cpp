@@ -6,7 +6,8 @@ void UpdatePlayerInput(Player &player)
     player.throttleDown = IsKeyDown(KEY_S);
 
     player.firingBullet = IsKeyDown(KEY_LEFT_SHIFT);
-    player.firingMsl = IsKeyDown(KEY_SPACE);
+
+    if(IsKeyPressed(KEY_SPACE)) player.firingMsl = true;
 
     if(player.stalling)
     {
@@ -112,16 +113,38 @@ void UpdatePlayer(Player &player, float dt)
 
     SetShaderValue(player.engineShader, player.engineBrightnessLoc, &player.engineGlow, SHADER_UNIFORM_FLOAT);
 
-    FireMissile(
-        player.aircraft.missilePool,
-        rotation,
-        body.transform.translation,
-        config.mslOffset,
-        thrust,
-        body.forwardDrag,
-        dt,
-        player.firingMsl
+    Vector3 mslOffset = config.mslOffset;
+
+    switch (player.aircraft.mslFired)
+    {
+    case 1: mslOffset.x = -config.mslOffset.x; break;
+    
+    default: break;
+    }
+
+    bool firedMissile = FireMissile(
+            player.aircraft.missilePool,
+            rotation,
+            body.transform.translation,
+            mslOffset,
+            thrust,
+            body.forwardDrag,
+            dt,
+            player.firingMsl
     );
+
+    if(player.firingMsl) player.firingMsl = false;
+
+    if(firedMissile)
+    {
+        player.aircraft.mslFired++;
+
+        if(player.aircraft.mslFired >= player.aircraft.hardpoints)
+        {
+            player.aircraft.mslFired = 0;
+            player.aircraft.missilePool.fireTimer = player.aircraft.missilePool.properties.firerate;
+        }
+    }
 
     UpdateMissilePool(player.aircraft.missilePool, dt);
 

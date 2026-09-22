@@ -98,6 +98,8 @@ void UpdateScene(Scene &scene, float dt)
 
     std::cout<<"thrust: "<<player.aircraft.thrust<<"\n";
 
+    std::cout<<"missile fired: "<<player.aircraft.mslFired<<"\n";
+
     //std::cout<<"loc: "<<GetShaderLocation(scene.flatShader, "maxIntensity")<<"\n";
 }
 

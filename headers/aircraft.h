@@ -76,6 +76,10 @@ struct Aircraft
     AircraftType type;
 
     float thrust = 0.0f;
+
+    int mslFired = 0;
+
+    int hardpoints = 2;
 };
 
 inline AircraftConfig aircraftsDB[AIRCRAFT_COUNT];
@@ -117,20 +121,11 @@ inline void LoadAssets()
 
     f15.gunType = VULKAN;
 
-    Vector3 f15GunOffset = {0.0f,0.0f,0.0f};
-
-    switch (f15.gunType)
-    {
-    case VULKAN: f15GunOffset = {-0.4f,-0.25f,-0.75f}; break;
-    
-    default: break;
-    }
-
-    f15.gunOffset = f15GunOffset;
+    f15.gunOffset = {-0.4f,-0.25f,-0.75f};
 
     f15.mslType = STANDARD_MSL;
 
-    Vector3 f15MSLOffset = {0.0f,0.0f,0.0f};
+    Vector3 f15MSLOffset = {-1.0f,-0.5f,-0.25f};
     
     f15.mslOffset = f15MSLOffset;
 
@@ -170,7 +165,7 @@ inline Aircraft InitAircraft(AircraftType type)
 
     InitBulletPool(aircraft.bulletpool, gunsDB[aircraftsDB[type].gunType], 50);
 
-    InitMissilePool(aircraft.missilePool, missilesDB[aircraftsDB[type].mslType], 4);
+    InitMissilePool(aircraft.missilePool, missilesDB[aircraftsDB[type].mslType], 30);
 
     return aircraft;
 }
