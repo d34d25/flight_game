@@ -129,6 +129,8 @@ void DrawGameplay(Scene &scene)
 
     DrawAircraft(player.aircraft);
 
+    DrawMissiles(player.aircraft);
+
     DrawBullets(player.aircraft);
 }
 

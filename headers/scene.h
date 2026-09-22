@@ -106,3 +106,21 @@ inline void DrawBullets(Aircraft& aircraft)
         rlPopMatrix();
     }
 }
+
+inline void DrawMissiles(Aircraft& aircraft)
+{
+    for(Missile* m : aircraft.missilePool.activeMissiles)
+    {
+        if(!m) continue;
+
+        rlPushMatrix();
+
+        rlTranslatef(m->body.transform.translation.x, m->body.transform.translation.y, m->body.transform.translation.z);
+
+        rlMultMatrixf(MatrixToFloat(QuaternionToMatrix(m->body.transform.rotation)));
+
+        DrawCubeV({0.0f,0.0f,0.0f}, {m->missileSize * 0.5f, m->missileSize * 0.5f,m->missileSize}, RAYWHITE);
+
+        rlPopMatrix();
+    }
+}

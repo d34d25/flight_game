@@ -33,6 +33,7 @@ struct Player
     bool throttleDown = false;
 
     bool firingBullet = false;
+    bool firingMsl = false;
 
     bool stalling = true;
 };
@@ -71,6 +72,8 @@ inline void InitPlayer(Player& player)
     GetAircraftModel(player.aircraft).materials[1].shader = player.engineShader;
 
     Vector3 bodyDirection = GetWorldVectorFromLocalVector(player.aircraft.body.transform.rotation, LOCAL_FORWARD);
+
+    player.aircraft.thrust = aircraftsDB[player.aircraft.type].idleThrust;
 
     player.aircraft.body.linearVelocity = Vector3Normalize(bodyDirection) * aircraftsDB[F_15].idleSpeed;
 }

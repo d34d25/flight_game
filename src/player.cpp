@@ -6,6 +6,7 @@ void UpdatePlayerInput(Player &player)
     player.throttleDown = IsKeyDown(KEY_S);
 
     player.firingBullet = IsKeyDown(KEY_LEFT_SHIFT);
+    player.firingMsl = IsKeyDown(KEY_SPACE);
 
     if(player.stalling)
     {
@@ -111,6 +112,20 @@ void UpdatePlayer(Player &player, float dt)
 
     SetShaderValue(player.engineShader, player.engineBrightnessLoc, &player.engineGlow, SHADER_UNIFORM_FLOAT);
 
+    FireMissile(
+        player.aircraft.missilePool,
+        rotation,
+        body.transform.translation,
+        config.mslOffset,
+        body.linearVelocity,
+        thrust,
+        body.forwardDrag,
+        dt,
+        player.firingMsl
+    );
+
+    UpdateMissilePool(player.aircraft.missilePool, dt);
+
     ApplyForceLocal(body, LOCAL_FORWARD, thrust);
 
     //plane physics
@@ -199,12 +214,3 @@ void UpdateCameraTransform(const Player& player, const Transform &targerTransfor
 
     camera.fovy = BASE_FOVY * CalculateCameraFOVFactor(forwardSpeed, config);
 }
-
-
-/*float stallT = STALL_TORQUE;
-
-    float stallX = axisOfRotation.x * config.angularDrag.x;
-    float stallY = axisOfRotation.y * config.angularDrag.y;
-    float stallZ = axisOfRotation.z * config.angularDrag.z;
-
-    stallT = stallT + stallX + stallY + stallZ;*/

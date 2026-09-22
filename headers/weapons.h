@@ -56,7 +56,7 @@ struct BulletPool
 
 void InitBulletPool(BulletPool& bulletpool, BulletPoolProperties properties, int quantity);
 
-void UpdateBulletPool(BulletPool& bulletpool,float dt);
+void UpdateBulletPool(BulletPool& bulletpool, float dt);
 
 void SpawnBullet(BulletPool& bulletpool, Vector3 position, Vector3 initalVelocity, Quaternion rotation = QuaternionIdentity());
 
@@ -109,9 +109,11 @@ inline void FireBullet(
 
         Vector3 initialVel = (finalDirection * bulletpool.properties.speed) + linearVelocity;
 
-        Vector3 bulletSpawnPos = position + Vector3RotateByQuaternion(offset, QuaternionNormalize(rotation));
+        Quaternion normRotation = QuaternionNormalize(rotation);
+
+        Vector3 bulletSpawnPos = position + Vector3RotateByQuaternion(offset, normRotation);
         
-        SpawnBullet(bulletpool, bulletSpawnPos, initialVel, rotation);
+        SpawnBullet(bulletpool, bulletSpawnPos, initialVel, normRotation);
 
         bulletpool.fireTimer = bulletpool.properties.firerate;
     }
@@ -119,6 +121,98 @@ inline void FireBullet(
 
 //Missiles / Bombs
 
+constexpr float MSL_ANGULAR_DRAG = 2.0f;
+
+struct MissileProperties
+{
+    float lifeTime;
+
+    float maxSpeed;
+
+    float acceleration;
+
+    float missileSize;
+
+    float firerate;
+};
+
+struct Missile
+{
+    Body body;
+
+    float lifeTime;
+
+    float missileSize;
+
+    float currentTime;
+
+    float maxSpeed;
+
+    float maxThrust;
+
+    float thrust;
+
+    float acceleration;
+
+    bool didHit;
+};
+
+void UpdateMissile(Missile* missile, float dt);
+
+struct MissilePool
+{
+    std::vector<std::unique_ptr<Missile>> missiles;
+
+    std::vector<Missile*> activeMissiles;
+
+    std::vector<Missile*> inactiveMissiles;
+
+    MissileProperties properties;
+
+    float fireTimer;
+};
+
+void InitMissilePool(MissilePool& missilePool, MissileProperties properties, int quantity);
+
+void UpdateMissilePool(MissilePool& missilePool, float dt);
+
+void SpawnMissile(MissilePool& missilePool, Vector3 position, Vector3 initialVelocity, float thrust, float drag, Quaternion rotation = QuaternionIdentity());
+
+enum MissileType
+{
+    STANDARD_MSL,
+    MISSILE_COUNT
+};
+
+inline MissileProperties missilesDB[MISSILE_COUNT];
+
+void InitMissileDB();
+
+inline void FireMissile(
+    MissilePool& missilepool,
+    Quaternion rotation,
+    Vector3 position,
+    Vector3 offset,
+    Vector3 linearVelocity,
+    float thrust,
+    float drag,
+    float dt,
+    bool condition = true
+)
+{
+    if(missilepool.fireTimer > 0.0f) missilepool.fireTimer -= dt;
+
+    if(condition && missilepool.fireTimer <= 0.0f)
+    {
+        Quaternion normRotation = QuaternionNormalize(rotation);
+
+        Vector3 mslSpawnPos = position + Vector3RotateByQuaternion(offset, normRotation);
+
+        SpawnMissile(missilepool, mslSpawnPos, linearVelocity, thrust, drag, normRotation);
+        
+        missilepool.fireTimer = missilepool.properties.firerate;
+    }
+}
 
 
 //Effects

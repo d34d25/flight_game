@@ -26,9 +26,13 @@ struct AircraftConfig
 
     Vector3 gunOffset;
 
+    Vector3 mslOffset;
+
     Vector3 angularDrag;
 
     BulletType gunType;
+
+    MissileType mslType;
 
     float forwardDrag;
     float sideDrag;
@@ -67,21 +71,20 @@ struct Aircraft
 
     BulletPool bulletpool;
 
+    MissilePool missilePool;
+
     AircraftType type;
 
     float thrust = 0.0f;
 };
-
-inline float GetDesiredValue(float desiredValue, float drag)
-{
-    return desiredValue * drag;
-}
 
 inline AircraftConfig aircraftsDB[AIRCRAFT_COUNT];
 
 inline void LoadAssets()
 {
     InitGunDB();
+
+    InitMissileDB();
 
     //F-15
     AircraftConfig& f15 = aircraftsDB[F_15];
@@ -94,10 +97,10 @@ inline void LoadAssets()
     f15.sideDrag = 4.0f;
 
     f15.maxSpeed = 170.0f;
-    f15.idleSpeed = 100.0f;
+    f15.idleSpeed = 120.0f;
 
-    f15.stallSpeed = 30.0f;
-    f15.recoverySpeed = 40.0f;
+    f15.stallSpeed = 70.0f;
+    f15.recoverySpeed = 80.0f;
 
     f15.maxThrust = GetDesiredValue(f15.maxSpeed, f15.forwardDrag);
     f15.idleThrust = GetDesiredValue(f15.idleSpeed, f15.forwardDrag);
@@ -114,12 +117,22 @@ inline void LoadAssets()
 
     f15.gunType = VULKAN;
 
+    Vector3 f15GunOffset = {0.0f,0.0f,0.0f};
+
     switch (f15.gunType)
     {
-    case VULKAN: f15.gunOffset = {-0.4f,-0.25f,-0.5f}; break;
+    case VULKAN: f15GunOffset = {-0.4f,-0.25f,-0.75f}; break;
     
-    default: f15.gunOffset = {-0.4f,-0.25f,-0.5f}; break;
+    default: break;
     }
+
+    f15.gunOffset = f15GunOffset;
+
+    f15.mslType = STANDARD_MSL;
+
+    Vector3 f15MSLOffset = {0.0f,0.0f,0.0f};
+    
+    f15.mslOffset = f15MSLOffset;
 
     //common values
 
@@ -156,6 +169,8 @@ inline Aircraft InitAircraft(AircraftType type)
     aircraft.body = InitAircraftBody(aircraft.type);
 
     InitBulletPool(aircraft.bulletpool, gunsDB[aircraftsDB[type].gunType], 50);
+
+    InitMissilePool(aircraft.missilePool, missilesDB[aircraftsDB[type].mslType], 4);
 
     return aircraft;
 }

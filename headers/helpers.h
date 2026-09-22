@@ -31,3 +31,8 @@ inline Vector3 GetWorldVectorFromLocalVector(const Quaternion& rotation, const V
 
     return localVec;
 }
+
+inline float GetDesiredValue(float desiredValue, float drag)
+{
+    return desiredValue * drag;
+}
