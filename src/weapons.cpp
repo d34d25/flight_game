@@ -6,7 +6,7 @@ void InitBulletPool(BulletPool& bulletpool, BulletPoolProperties properties, int
 {
     bulletpool.properties = properties;
 
-    bulletpool.fireTimer = properties.firerate;
+    bulletpool.fireTimer = 0.0f;
 
     for(int i = 0; i < quantity; i++)
     {
@@ -15,8 +15,7 @@ void InitBulletPool(BulletPool& bulletpool, BulletPoolProperties properties, int
         tempBullet->currentTime = 0.0f;
         tempBullet->didhHit = false;
 
-        tempBullet->bulletSize = properties.bulletSize;
-        tempBullet->lifeTime = properties.lifeTime;
+        tempBullet->properties = properties;
 
         bulletpool.bullets.push_back(std::move(tempBullet));
     }
@@ -39,7 +38,7 @@ void UpdateBulletPool(BulletPool& bulletpool, float dt)
 
             b->currentTime += dt;
 
-            if(b->currentTime >= b->lifeTime || b->didhHit)
+            if(b->currentTime >= b->properties.lifeTime || b->didhHit)
             {
                 bulletpool.inactiveBullets.push_back(b);
 
@@ -73,8 +72,8 @@ void SpawnBullet(BulletPool& bulletpool, Vector3 position, Vector3 initalVelocit
         b->didhHit = false;
         b->currentTime = 0.0f;
 
-        b->bulletSize = bulletpool.properties.bulletSize;
-        b->lifeTime = bulletpool.properties.lifeTime;
+        b->properties.bulletSize = bulletpool.properties.bulletSize;
+        b->properties.lifeTime = bulletpool.properties.lifeTime;
 
         bulletpool.activeBullets.push_back(b);
     }
@@ -89,6 +88,110 @@ void InitGunDB()
     vulkan.lifeTime = 2.0f;
     vulkan.speed = 400.0f;
     vulkan.spread = 0.0025f;
+}
+
+void InitTrailDB()
+{
+    TrailProperties& mslTrail = trailsDB[MSL_TRAIL];
+
+    mslTrail.firerate = 0.025f;
+    mslTrail.lifeTime = 2.0f;
+    mslTrail.radius = 0.5f;
+    mslTrail.radiusIncreaseRate = 0.1f;
+
+    TrailProperties& explosion = trailsDB[EXPLOSION];
+
+    explosion.firerate = 0.000001f;
+    explosion.lifeTime = 3.0f;
+    explosion.radius = 10.0f;
+    explosion.radiusIncreaseRate = 0.4f;
+}
+
+void InitTrailPool(TrailPool &trailpool, TrailProperties properties, int quantity)
+{
+    trailpool.properties = properties;
+
+    trailpool.fireTimer = 0.0f;
+
+    for(int i = 0; i < quantity; i++)
+    {
+        std::unique_ptr<Trail> tempTrail = std::make_unique<Trail>();
+
+        tempTrail->properties = properties;
+
+        tempTrail->currentTime = 0.0f;
+
+        trailpool.trails.push_back(std::move(tempTrail));
+    }
+
+    for(const auto& trailPtr : trailpool.trails)
+    {
+        trailpool.inactiveTrails.push_back(trailPtr.get());
+    }
+}
+
+void UpdateTrailPool(TrailPool &trailpool, float dt)
+{
+    for(int i = 0; i < trailpool.activeTrails.size();)
+    {
+        Trail* t = trailpool.activeTrails[i];
+
+        if(!t)
+        {
+            UpdateTrail(t, dt);
+
+            t->currentTime += dt;
+
+            if(t-> currentTime >= t->properties.lifeTime)
+            {
+                trailpool.inactiveTrails.push_back(t);
+
+                trailpool.activeTrails[i] = trailpool.activeTrails.back();
+                trailpool.activeTrails.pop_back();
+            }
+            else
+            {
+                i++;
+            }
+        }
+        else
+        {
+            i++;
+        }
+    }
+}
+
+void SpawnTrail(TrailPool &trailpool, Vector3 position, Vector3 velocity)
+{
+    if(!trailpool.inactiveTrails.empty())
+    {
+        Trail* t = trailpool.inactiveTrails.back();
+        trailpool.inactiveTrails.pop_back();
+
+        t->position = position;
+        t->velocity = velocity;
+
+        t->currentTime = 0.0f;
+
+        trailpool.activeTrails.push_back(t);
+    }
+}
+
+inline void ResetTrailPool(TrailPool& trailpool)
+{
+    for(int i = 0; i < trailpool.activeTrails.size(); i++)
+    {
+        Trail* t = trailpool.activeTrails[i];
+
+        if(t)
+        {
+            t->currentTime = t->properties.lifeTime;
+            
+            trailpool.inactiveTrails.push_back(t);
+        }
+    }
+
+    trailpool.activeTrails.clear();
 }
 
 //missiles
@@ -106,19 +209,19 @@ void InitMissilePool(MissilePool &missilePool, MissileProperties properties, int
 {
     missilePool.properties = properties;
 
-    missilePool.fireTimer = properties.firerate;
+    missilePool.fireTimer = 0.0f;
 
     for(int i = 0; i < quantity; i++)
     {
         std::unique_ptr<Missile> tempMissile = std::make_unique<Missile>();
 
+        InitTrailPool(tempMissile->trailPool, trailsDB[MSL_TRAIL], 150);
+
         tempMissile->currentTime = 0.0f;
         tempMissile-> didHit = false;
 
-        tempMissile->missileSize = properties.missileSize;
-        tempMissile->lifeTime = properties.lifeTime;
+        tempMissile-> properties = properties;
 
-        tempMissile->maxSpeed = properties.maxSpeed;
         tempMissile->maxThrust = 1.0f;
 
         tempMissile->body.angularDrag = {MSL_ANGULAR_DRAG,MSL_ANGULAR_DRAG,MSL_ANGULAR_DRAG};
@@ -146,7 +249,17 @@ void UpdateMissilePool(MissilePool &missilePool, float dt)
 
             m->currentTime += dt;
 
-            if(m->currentTime >= m->lifeTime || m->didHit)
+            FireTrail(
+                m->trailPool,
+                m->body.transform.translation,
+                GetWorldVectorFromLocalVector(m->body.transform.rotation, LOCAL_BACKWARD) * 10.0f,
+                dt,
+                true
+            );
+
+            UpdateTrailPool(m->trailPool, dt);
+
+            if(m->currentTime >= m->properties.lifeTime || m->didHit)
             {
                 missilePool.inactiveMissiles.push_back(m);
 
@@ -172,6 +285,8 @@ void SpawnMissile(MissilePool &missilePool, Vector3 position, float thrust, floa
         Missile* m = missilePool.inactiveMissiles.back();
         missilePool.inactiveMissiles.pop_back();
 
+        ResetTrailPool(m->trailPool);
+
         m->body.transform.translation = position;
         m->body.transform.rotation = rotation;
 
@@ -187,8 +302,8 @@ void SpawnMissile(MissilePool &missilePool, Vector3 position, float thrust, floa
         m->didHit = false;
         m->currentTime = 0.0f;
 
-        m->missileSize = missilePool.properties.missileSize;
-        m->lifeTime = missilePool.properties.lifeTime;
+        m->properties.missileSize = missilePool.properties.missileSize;
+        m->properties.lifeTime = missilePool.properties.lifeTime;
 
         missilePool.activeMissiles.push_back(m);
     }

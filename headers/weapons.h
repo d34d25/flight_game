@@ -27,13 +27,11 @@ struct Bullet
 
     Vector3 velocity;
 
-    float lifeTime;
-
-    float bulletSize;
+    BulletPoolProperties properties;
 
     float currentTime;
 
-    bool didhHit;
+    bool didhHit;  
 };
 
 inline void UpdateBullet(Bullet* bullet, float dt)
@@ -119,6 +117,80 @@ inline void FireBullet(
     }
 }
 
+//Effects
+
+enum TrailType
+{
+    MSL_TRAIL,
+    EXPLOSION,
+    TRAIL_COUNT
+};
+
+
+struct TrailProperties
+{
+    float lifeTime;
+
+    float radius;
+
+    float radiusIncreaseRate;
+
+    float firerate;
+};
+
+struct Trail
+{
+    Vector3 position;
+    
+    Vector3 velocity;
+
+    TrailProperties properties;
+
+    float currentTime;
+};
+
+inline void UpdateTrail(Trail* trail, float dt)
+{
+    trail->properties.radius += trail->properties.radiusIncreaseRate * dt;
+
+    trail->position += trail->velocity * dt;
+}
+
+inline TrailProperties trailsDB[TRAIL_COUNT];
+
+void InitTrailDB();
+
+struct TrailPool
+{
+    std::vector<std::unique_ptr<Trail>> trails;
+
+    std::vector<Trail*> activeTrails;
+
+    std::vector<Trail*> inactiveTrails;
+
+    TrailProperties properties;
+
+    float fireTimer;
+};
+
+void InitTrailPool(TrailPool& trailpool, TrailProperties properties, int quantity);
+
+void UpdateTrailPool(TrailPool& trailpool, float dt);
+
+void SpawnTrail(TrailPool& trailpool, Vector3 position, Vector3 velocity);
+
+inline void FireTrail(TrailPool& trailpool, Vector3 position, Vector3 velocity, float dt, bool condition)
+{
+    if(trailpool.fireTimer > 0.0f) trailpool.fireTimer -= dt;
+
+    if(condition && trailpool.fireTimer <= 0.0f)
+    {
+        SpawnTrail(trailpool, position, velocity);
+
+        trailpool.fireTimer = trailpool.properties.firerate;
+    }
+}
+
 //Missiles / Bombs
 
 constexpr float MSL_ANGULAR_DRAG = 2.0f;
@@ -138,13 +210,11 @@ struct Missile
 {
     Body body;
 
-    float lifeTime;
+    TrailPool trailPool;
 
-    float missileSize;
+    MissileProperties properties;
 
     float currentTime;
-
-    float maxSpeed;
 
     float maxThrust;
 
@@ -191,7 +261,6 @@ inline bool FireMissile(
     Vector3 offset,
     float thrust,
     float drag,
-    float dt,
     bool condition = true
 )
 {
@@ -202,14 +271,9 @@ inline bool FireMissile(
         Vector3 mslSpawnPos = position + Vector3RotateByQuaternion(offset, normRotation);
 
         SpawnMissile(missilepool, mslSpawnPos, thrust, drag, normRotation);
-        
-        //missilepool.fireTimer = missilepool.properties.firerate;
 
         return true;
     }
 
     return false;
 }
-
-
-//Effects

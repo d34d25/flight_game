@@ -123,14 +123,13 @@ void UpdatePlayer(Player &player, float dt)
     }
 
     bool firedMissile = FireMissile(
-            player.aircraft.missilePool,
-            rotation,
-            body.transform.translation,
-            mslOffset,
-            thrust,
-            body.forwardDrag,
-            dt,
-            player.firingMsl
+        player.aircraft.missilePool,
+        rotation,
+        body.transform.translation,
+        mslOffset,
+        thrust,
+        body.forwardDrag,
+        player.firingMsl
     );
 
     if(player.firingMsl) player.firingMsl = false;

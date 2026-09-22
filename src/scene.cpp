@@ -1,5 +1,7 @@
 #include "scene.h"
 
+#include <cstdio>
+
 void InitScene(Scene &scene)
 {
     scene.gameplayCanvas = LoadRenderTexture(CANVAS_WIDTH * SCALE, CANVAS_HEIGHT * SCALE);
@@ -94,13 +96,13 @@ void UpdateScene(Scene &scene, float dt)
     SetShaderValue(scene.skyShader, scene.minHeightLoc, &scene.minHeight, SHADER_UNIFORM_FLOAT);
     SetShaderValue(scene.skyShader, scene.maxHeightLoc, &scene.maxHeight, SHADER_UNIFORM_FLOAT);
 
-    std::cout<<"forward speed: "<<GetForwardSpeed(player)<<"\n";
+    std::cout<<"\n";
+
+    printf("\nforward speed: %.3f   ", GetForwardSpeed(player));
 
     std::cout<<"thrust: "<<player.aircraft.thrust<<"\n";
 
     std::cout<<"missile fired: "<<player.aircraft.mslFired<<"\n";
-
-    //std::cout<<"loc: "<<GetShaderLocation(scene.flatShader, "maxIntensity")<<"\n";
 }
 
 void DrawGameplay(Scene &scene)

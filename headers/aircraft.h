@@ -90,6 +90,8 @@ inline void LoadAssets()
 
     InitMissileDB();
 
+    InitTrailDB();
+
     //F-15
     AircraftConfig& f15 = aircraftsDB[F_15];
 

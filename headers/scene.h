@@ -101,7 +101,11 @@ inline void DrawBullets(Aircraft& aircraft)
 
         rlMultMatrixf(MatrixToFloat(QuaternionToMatrix(b->transform.rotation)));
 
-        DrawCubeV({0.0f,0.0f,0.0f}, {b->bulletSize * 0.5f, b->bulletSize * 0.5f,b->bulletSize}, YELLOW);
+        DrawCubeV(
+            {0.0f,0.0f,0.0f},
+            {b->properties.bulletSize * 0.5f, b->properties.bulletSize * 0.5f,b->properties.bulletSize},
+            YELLOW
+        );
 
         rlPopMatrix();
     }
@@ -119,8 +123,35 @@ inline void DrawMissiles(Aircraft& aircraft)
 
         rlMultMatrixf(MatrixToFloat(QuaternionToMatrix(m->body.transform.rotation)));
 
-        DrawCubeV({0.0f,0.0f,0.0f}, {m->missileSize * 0.5f, m->missileSize * 0.5f,m->missileSize}, RAYWHITE);
+        DrawCubeV(
+            {0.0f,0.0f,0.0f},
+            {m->properties.missileSize * 0.5f, m->properties.missileSize * 0.5f,m->properties.missileSize},
+            RAYWHITE
+        );
 
         rlPopMatrix();
+
+        for(Trail* t : m->trailPool.activeTrails)
+        {
+            if(!t) continue;
+
+            Color trailcolor = WHITE;
+
+            trailcolor.a = 200;
+
+            rlPushMatrix();
+
+            Matrix cameraMatrix = GetCameraMatrix(camera);
+
+            Matrix lookMatrix = MatrixLookAt(t->position, camera.position, LOCAL_UP);
+
+            Matrix billboardMatrix = MatrixInvert(lookMatrix);
+
+            rlMultMatrixf(MatrixToFloat(billboardMatrix));
+
+            DrawCircleSector({0.0f,0.0f}, t->properties.radius, 0.0f, 360.0f, 10, trailcolor);
+
+            rlPopMatrix();
+        }
     }
 }
