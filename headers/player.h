@@ -10,6 +10,12 @@ inline Vector3 cameraOffset = {0.0f, 0.7f, -6.0f};
 
 inline Vector3 lastFrameCameraOffset = {0.0f, 0.7f, -6.0f};
 
+inline float orbitCameraDistance = -10.0f;
+
+inline float orbitCameraYaw = 0.0f;
+
+inline float orbitCameraPitch = 0.0f;
+
 struct Player
 {
     Shader engineShader;
@@ -35,6 +41,8 @@ struct Player
     bool firingBullet = false;
     bool firingMsl = false;
 
+    bool orbitCamera = false;
+
     bool stalling = true;
 };
 
@@ -42,7 +50,9 @@ void UpdatePlayerInput(Player& player);
 
 void UpdatePlayer(Player& player, float dt);
 
-void UpdateCameraTransform(const Player& player ,const Transform &targerTransform, float dt);
+void UpdateChaseCamera(const Player& player, const Transform &targerTransform, float dt);
+
+void UpdateOrbitCamera(const Player& player, float dt);
 
 inline void InitCamera()
 {

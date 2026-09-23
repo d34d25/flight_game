@@ -2,10 +2,14 @@
 
 void UpdatePlayerInput(Player &player)
 {
-    player.throttleUp = IsKeyDown(KEY_W);
-    player.throttleDown = IsKeyDown(KEY_S);
+    if(IsKeyPressed(KEY_TWO)) player.orbitCamera = true;
 
-    player.firingBullet = IsKeyDown(KEY_LEFT_SHIFT);
+    if(IsKeyPressed(KEY_ONE)) player.orbitCamera = false;
+
+    player.throttleUp = player.orbitCamera ? IsKeyDown(KEY_LEFT_SHIFT) : IsKeyDown(KEY_W) ;
+    player.throttleDown = player.orbitCamera ? IsKeyDown(KEY_LEFT_CONTROL) : IsKeyDown(KEY_S);
+
+    player.firingBullet = player.orbitCamera ? IsMouseButtonDown(MOUSE_BUTTON_LEFT) : IsKeyDown(KEY_LEFT_SHIFT);
 
     if(IsKeyPressed(KEY_SPACE)) player.firingMsl = true;
 
@@ -16,14 +20,14 @@ void UpdatePlayerInput(Player &player)
         return;
     }
 
-    player.pitchUp = IsKeyDown(KEY_DOWN);
-    player.pitchDown = IsKeyDown(KEY_UP);
+    player.pitchUp = player.orbitCamera ? IsKeyDown(KEY_S) : IsKeyDown(KEY_DOWN);
+    player.pitchDown = player.orbitCamera ? IsKeyDown(KEY_W) : IsKeyDown(KEY_UP);
 
-    player.rollLeft = IsKeyDown(KEY_LEFT);
-    player.rollRight = IsKeyDown(KEY_RIGHT);
+    player.rollLeft = player.orbitCamera ? IsKeyDown(KEY_A) : IsKeyDown(KEY_LEFT);
+    player.rollRight = player.orbitCamera ? IsKeyDown(KEY_D) : IsKeyDown(KEY_RIGHT);
 
-    player.yawLeft = IsKeyDown(KEY_A);
-    player.yawRight = IsKeyDown(KEY_D);
+    player.yawLeft = player.orbitCamera ? IsKeyDown(KEY_E) : IsKeyDown(KEY_A);
+    player.yawRight = player.orbitCamera ? IsKeyDown(KEY_Q) : IsKeyDown(KEY_D);
 }
 
 void UpdatePlayer(Player &player, float dt)
@@ -85,7 +89,7 @@ void UpdatePlayer(Player &player, float dt)
 
         if(thrust <= 0.0f) thrust = 0.0f;
     }
-    else
+    else if(!player.orbitCamera)
     {
         if(thrust < config.idleThrust)
         {
@@ -205,7 +209,7 @@ void UpdatePlayer(Player &player, float dt)
     if(player.stalling && dotForwardDown < stallDot) ApplyTorque(body, axisOfRotation, stallTorque);
 }
 
-void UpdateCameraTransform(const Player& player, const Transform &targerTransform, float dt)
+void UpdateChaseCamera(const Player& player, const Transform &targerTransform, float dt)
 {
     const Body& body = player.aircraft.body;
 
@@ -234,4 +238,43 @@ void UpdateCameraTransform(const Player& player, const Transform &targerTransfor
     camera.position = targerTransform.translation + lastFrameCameraOffset;
 
     camera.fovy = BASE_FOVY * CalculateCameraFOVFactor(forwardSpeed, config);
+}
+
+void UpdateOrbitCamera(const Player &player, float dt)
+{
+    HideCursor();
+
+    int centerX = GetScreenWidth() / 2;
+    int centerY = GetScreenHeight() / 2;
+
+    Vector2 mouseDelta = GetMouseDelta();
+
+    float wheelMove = GetMouseWheelMove();
+
+    orbitCameraDistance += wheelMove;
+
+    orbitCameraDistance = Clamp(orbitCameraDistance, -20.0f, -2.0f);
+
+    orbitCameraYaw -= mouseDelta.x * 0.2f * dt;
+    orbitCameraPitch -= mouseDelta.y * 0.2f * dt;
+
+    orbitCameraPitch = Clamp(orbitCameraPitch, -1.4f, 1.4f);
+
+    float cosPitch = cos(orbitCameraPitch);
+    float sinPitch = sin(orbitCameraPitch);
+
+    float cosYaw = cos(orbitCameraYaw);
+    float sinYaw = sin(orbitCameraYaw);
+
+    Vector3 target = player.aircraft.body.transform.translation;
+
+    camera.position.x  = target.x + orbitCameraDistance * cosPitch * sinYaw;
+    camera.position.y  = target.y + orbitCameraDistance * sinPitch;
+    camera.position.z  = target.z + orbitCameraDistance * cosPitch * cosYaw;
+
+    camera.target = target;
+
+    camera.up = LOCAL_UP;
+
+    SetMousePosition(centerX, centerY);
 }

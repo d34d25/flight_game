@@ -9,7 +9,7 @@ void InitScene(Scene &scene)
     InitPlayer(scene.player);
     InitCamera();
 
-    scene.lightDir = {0.5f, 1.0f, 0.3f};;
+    scene.lightDir = {0.5f, 0.75f, 0.5f};;
 
     scene.minIntensity = 0.4f;
     scene.maxIntensity = 1.0f;
@@ -39,10 +39,10 @@ void InitScene(Scene &scene)
 
     scene.skySphereModel = LoadModelFromMesh(skySphereMesh);
 
-    scene.baseColor = {150, 150, 255, 255};
-    scene.topColor = {25,25,100,255};
+    scene.baseColor = TRANSPARENT_BLUE;
+    scene.topColor = DEEP_BLUE;
     scene.bottomColor = WHITE;
-
+    
     scene.maxHeight = scene.skyRadius * 0.75f;
     scene.minHeight = 0.0f;
 
@@ -84,7 +84,8 @@ void UpdateScene(Scene &scene, float dt)
 
     UpdateBody(player.aircraft.body, dt);
 
-    UpdateCameraTransform(player, player.aircraft.body.transform, dt);
+    if(!player.orbitCamera) UpdateChaseCamera(player, player.aircraft.body.transform, dt);
+    else UpdateOrbitCamera(player, dt);
 
     const float playerY = player.aircraft.body.transform.translation.y;
 
@@ -120,7 +121,7 @@ void DrawGameplay(Scene &scene)
 
     rlSetMatrixModelview(view);
 
-    DrawModel(scene.skySphereModel, {0,0,0}, 1, RAYWHITE);
+    DrawModel(scene.skySphereModel, {0,0,0}, 1, WHITE);
 
     rlEnableDepthMask();
     rlEnableBackfaceCulling();
@@ -128,6 +129,8 @@ void DrawGameplay(Scene &scene)
     rlSetMatrixModelview(originalView);
 
     rlPopMatrix();
+
+    rlEnableDepthTest();
 
     Player& player = scene.player;
 

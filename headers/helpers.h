@@ -13,6 +13,10 @@ constexpr Vector3 LOCAL_BACKWARD = {0.0f,0.0f, -1.0f};
 
 constexpr Vector3 LOCAL_DOWN = {0.0f,-1.0f,0.0f};
 
+constexpr Color TRANSPARENT_BLUE = {150, 150, 255, 255};
+
+constexpr Color DEEP_BLUE = {25,25,100,255};
+
 inline void FollowTransform(Transform& transformA, const Transform& transformB, const Vector3& offset)
 {
     Vector3 rotatedOffset = Vector3RotateByQuaternion(offset, transformB.rotation);

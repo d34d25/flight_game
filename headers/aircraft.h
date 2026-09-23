@@ -103,7 +103,7 @@ inline void LoadAssets()
     f15.sideDrag = 4.0f;
 
     f15.maxSpeed = 250.0f;
-    f15.idleSpeed = 120.0f;
+    f15.idleSpeed = 140.0f;
 
     f15.stallSpeed = 70.0f;
     f15.recoverySpeed = 80.0f;
@@ -123,11 +123,11 @@ inline void LoadAssets()
 
     f15.gunType = VULKAN;
 
-    f15.gunOffset = {-0.4f,-0.25f,-0.75f};
+    f15.gunOffset = {-0.25f, 0.1f, -6.1f};
 
     f15.mslType = STANDARD_MSL;
 
-    Vector3 f15MSLOffset = {-1.0f,-0.5f,-0.25f};
+    Vector3 f15MSLOffset = {-1.0f, -0.5f, -6.8f};
     
     f15.mslOffset = f15MSLOffset;
 
@@ -170,6 +170,11 @@ inline Aircraft InitAircraft(AircraftType type)
     InitMissilePool(aircraft.missilePool, missilesDB[aircraftsDB[type].mslType], 30);
 
     return aircraft;
+}
+
+inline Model GetAircraftModelValue(const Aircraft& aircraft)
+{
+    return aircraftsDB[aircraft.type].model;
 }
 
 inline Model& GetAircraftModel(const Aircraft& aircraft)

@@ -72,21 +72,15 @@ void UnloadScene(Scene& scene);
 
 inline void DrawAircraft(Aircraft& aircraft)
 {
-    Matrix mScale = MatrixScale(1,1,1);
-
-    Matrix mRotation = QuaternionToMatrix(aircraft.body.transform.rotation);
-
-    Vector3& translation = aircraft.body.transform.translation;
-
-    Matrix mTranslation = MatrixTranslate(translation.x, translation.y, translation.z);
-
-    Matrix finalMatrix = MatrixMultiply(MatrixMultiply(mScale, mRotation), mTranslation);
-
     Model& model = GetAircraftModel(aircraft);
+    
+    Vector3 rotationAxis = {0.0f,0.0f,0.0f};
+    
+    float rotationAngle = 0.0f;
 
-    model.transform = finalMatrix;
+    QuaternionToAxisAngle(aircraft.body.transform.rotation, &rotationAxis, &rotationAngle);
 
-    DrawModel(model, {0.0f,0.0f,0.0f}, 1, WHITE);
+    DrawModelEx(model, aircraft.body.transform.translation, rotationAxis, rotationAngle * RAD2DEG, {1.0f,1.0f,1.0f}, WHITE);
 }
 
 inline void DrawBullets(Aircraft& aircraft)
