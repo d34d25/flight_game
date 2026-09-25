@@ -26,8 +26,8 @@ void UpdatePlayerInput(Player &player)
     player.rollLeft = player.orbitCamera ? IsKeyDown(KEY_A) : IsKeyDown(KEY_LEFT);
     player.rollRight = player.orbitCamera ? IsKeyDown(KEY_D) : IsKeyDown(KEY_RIGHT);
 
-    player.yawLeft = player.orbitCamera ? IsKeyDown(KEY_E) : IsKeyDown(KEY_A);
-    player.yawRight = player.orbitCamera ? IsKeyDown(KEY_Q) : IsKeyDown(KEY_D);
+    player.yawLeft = player.orbitCamera ? IsKeyDown(KEY_Q) : IsKeyDown(KEY_A);
+    player.yawRight = player.orbitCamera ? IsKeyDown(KEY_E) : IsKeyDown(KEY_D);
 }
 
 void UpdatePlayer(Player &player, float dt)
@@ -225,7 +225,7 @@ void UpdateChaseCamera(const Player& player, const Transform &targerTransform, f
 
     Vector3 targetForward = GetWorldVectorFromLocalVector(targerTransform.rotation, LOCAL_FORWARD);
 
-    float alpha = 5.0f;
+    float alpha = 5.0f; //5.0f;
 
     float t = alpha * dt;
 
@@ -253,7 +253,7 @@ void UpdateOrbitCamera(const Player &player, float dt)
 
     orbitCameraDistance += wheelMove;
 
-    orbitCameraDistance = Clamp(orbitCameraDistance, -20.0f, -2.0f);
+    orbitCameraDistance = Clamp(orbitCameraDistance, -20.0f, -5.0f);
 
     orbitCameraYaw -= mouseDelta.x * 0.2f * dt;
     orbitCameraPitch -= mouseDelta.y * 0.2f * dt;

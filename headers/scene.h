@@ -6,6 +6,8 @@
 
 #include "rlgl.h"
 
+#include <GL/gl.h>
+
 constexpr float NATIVE_WIDTH = 1600;
 constexpr float NATIVE_HEIGHT = 900;
 
@@ -25,6 +27,9 @@ struct Scene
     Shader skyShader;
 
     Shader flatShader;
+
+    Model terrainModel;
+    Image terrainImg;
 
     Vector3 lightDir;
 
@@ -69,6 +74,31 @@ void DrawGameplay(Scene& scene);
 void DrawScene(Scene& scene);
 
 void UnloadScene(Scene& scene);
+
+inline void DrawSky(Scene& scene)
+{
+    rlPushMatrix();
+
+    rlDisableBackfaceCulling();
+    rlDisableDepthMask();
+
+    Matrix originalView = rlGetMatrixModelview();
+
+    Matrix view = GetCameraMatrix(camera);
+
+    view.m12 = 0.0f; view.m13 = 0.0f; view.m14 = 0.0f;
+
+    rlSetMatrixModelview(view);
+
+    DrawModel(scene.skySphereModel, {0,0,0}, 1, WHITE);
+
+    rlEnableDepthMask();
+    rlEnableBackfaceCulling();
+
+    rlSetMatrixModelview(originalView);
+
+    rlPopMatrix();
+}
 
 inline void DrawAircraft(Aircraft& aircraft)
 {

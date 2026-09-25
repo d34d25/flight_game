@@ -4,12 +4,25 @@
 
 void InitScene(Scene &scene)
 {
+    scene.terrainImg = GenImagePerlinNoise(256,256, 0, 0, 200.0f);
+
+    Mesh terrainMesh = GenMeshHeightmap(
+        scene.terrainImg, 
+        {
+            50000,
+            50,
+            50000
+        }
+    );
+
+    scene.terrainModel = LoadModelFromMesh(terrainMesh);
+
     scene.gameplayCanvas = LoadRenderTexture(CANVAS_WIDTH * SCALE, CANVAS_HEIGHT * SCALE);
 
     InitPlayer(scene.player);
     InitCamera();
 
-    scene.lightDir = {0.5f, 0.75f, 0.5f};;
+    scene.lightDir = {0.5f, 1.0f, 0.75f};;
 
     scene.minIntensity = 0.4f;
     scene.maxIntensity = 1.0f;
@@ -72,6 +85,11 @@ void InitScene(Scene &scene)
     {
         scene.skySphereModel.materials[i].shader = scene.skyShader;
     }
+
+    for(int i = 0; i < scene.terrainModel.materialCount; i++)
+    {
+        scene.terrainModel.materials[i].shader = scene.flatShader;
+    }
 }
 
 void UpdateScene(Scene &scene, float dt)
@@ -104,58 +122,58 @@ void UpdateScene(Scene &scene, float dt)
     std::cout<<"thrust: "<<player.aircraft.thrust<<"\n";
 
     std::cout<<"missile fired: "<<player.aircraft.mslFired<<"\n";
+
+    std::cout<<"mesh count: "<<GetAircraftModel(player.aircraft).meshCount<<"\n";
 }
+
+//render the player into a separate texture with its own clip planes
 
 void DrawGameplay(Scene &scene)
 {
-    rlPushMatrix();
-
-    rlDisableBackfaceCulling();
-    rlDisableDepthMask();
-
-    Matrix originalView = rlGetMatrixModelview();
-
-    Matrix view = GetCameraMatrix(camera);
-
-    view.m12 = 0.0f; view.m13 = 0.0f; view.m14 = 0.0f;
-
-    rlSetMatrixModelview(view);
-
-    DrawModel(scene.skySphereModel, {0,0,0}, 1, WHITE);
-
-    rlEnableDepthMask();
-    rlEnableBackfaceCulling();
-
-    rlSetMatrixModelview(originalView);
-
-    rlPopMatrix();
-
-    rlEnableDepthTest();
-
     Player& player = scene.player;
 
-    DrawGrid(1000,10);
+    BeginTextureMode(scene.gameplayCanvas);
+
+    ClearBackground(SKYBLUE);
+
+    rlSetClipPlanes(10.0, 200.0);
+
+    BeginMode3D(camera);
+
+    DrawSky(scene);
+
+    EndMode3D();
+
+    glClear(GL_DEPTH_BUFFER_BIT);
+
+    rlSetClipPlanes(200.0, 5000.0);
+
+    BeginMode3D(camera);
+
+    DrawModel(scene.terrainModel, {0,0,0}, 1, BEIGE);
+
+    EndMode3D();
+
+    glClear(GL_DEPTH_BUFFER_BIT);
+    
+    rlSetClipPlanes(3.0, 1000.0);
+
+    BeginMode3D(camera);
 
     DrawAircraft(player.aircraft);
 
     DrawMissiles(player.aircraft);
 
     DrawBullets(player.aircraft);
-}
-
-void DrawScene(Scene &scene)
-{
-    BeginTextureMode(scene.gameplayCanvas);
-
-    BeginMode3D(camera);
-    
-    ClearBackground(SKYBLUE);
-
-    DrawGameplay(scene);
 
     EndMode3D();
 
     EndTextureMode();
+}
+
+void DrawScene(Scene &scene)
+{
+    DrawGameplay(scene);
 
     ClearBackground(BLACK);
 

@@ -117,9 +117,9 @@ inline void LoadAssets()
     f15.recoveryAboveIdle = GetDesiredValue(30, f15.forwardDrag);
     f15.recoveryBelowIdle = GetDesiredValue(25, f15.forwardDrag);
 
-    f15.pitch = GetDesiredValue(0.45f, f15.angularDrag.x);
-    f15.roll = GetDesiredValue(2.0f, f15.angularDrag.z);
-    f15.yaw = GetDesiredValue(0.125f, f15.angularDrag.y);
+    f15.pitch = GetDesiredValue(0.6f, f15.angularDrag.x);
+    f15.roll = GetDesiredValue(2.2f, f15.angularDrag.z);
+    f15.yaw = GetDesiredValue(0.15f, f15.angularDrag.y);
 
     f15.gunType = VULKAN;
 

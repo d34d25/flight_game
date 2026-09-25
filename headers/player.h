@@ -8,7 +8,7 @@ inline Camera3D camera = {};
 
 inline Vector3 cameraOffset = {0.0f, 0.7f, -6.0f};
 
-inline Vector3 lastFrameCameraOffset = {0.0f, 0.7f, -6.0f};
+inline Vector3 lastFrameCameraOffset = cameraOffset;
 
 inline float orbitCameraDistance = -10.0f;
 
@@ -69,7 +69,7 @@ inline void InitPlayer(Player& player)
 {
     player.aircraft = InitAircraft(F_15);
     
-    player.aircraft.body.transform.translation.y = 200.0f;
+    player.aircraft.body.transform.translation.y = 800.0f;
     
     player.engineGlow = 1.0f;
 
