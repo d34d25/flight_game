@@ -8,6 +8,8 @@
 
 #include <GL/gl.h>
 
+#include "terrain.h"
+
 constexpr float NATIVE_WIDTH = 1600;
 constexpr float NATIVE_HEIGHT = 900;
 
@@ -20,6 +22,8 @@ struct Scene
 {
     Player player;
 
+    Terrain terrain;
+
     Model skySphereModel;
 
     RenderTexture gameplayCanvas;
@@ -28,15 +32,19 @@ struct Scene
 
     Shader flatShader;
 
-    Model terrainModel;
-    Image terrainImg;
-
-    Vector3 lightDir;
+    Shader fogShader;
 
     //sky shader
     Color baseColor;
     Color topColor;
     Color bottomColor;
+    //------------------
+
+    //fog shader
+    Vector3 viewPos;
+    //------------------
+
+    Vector3 lightDir;
 
     float minHeight;
     float maxHeight;
@@ -45,6 +53,10 @@ struct Scene
     float baseMaxHeight;
 
     float skyRadius;
+    //------------------
+
+    //fog shader
+    float fogDensity;
     //------------------
 
     //flat shader
@@ -62,6 +74,15 @@ struct Scene
     int bottomColorLoc;
     int minHeightLoc;
     int maxHeightLoc;
+    //------------------
+
+    //fog shader
+    int fogMinIntensityLoc;
+    int fogMaxIntenistyLoc;
+    int fogLightDirLoc;
+    int fogColorLoc;
+    int fogDensityLoc;
+    int viewPosLoc;
     //------------------
 };
 

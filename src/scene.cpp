@@ -4,19 +4,6 @@
 
 void InitScene(Scene &scene)
 {
-    scene.terrainImg = GenImagePerlinNoise(256,256, 0, 0, 200.0f);
-
-    Mesh terrainMesh = GenMeshHeightmap(
-        scene.terrainImg, 
-        {
-            50000,
-            50,
-            50000
-        }
-    );
-
-    scene.terrainModel = LoadModelFromMesh(terrainMesh);
-
     scene.gameplayCanvas = LoadRenderTexture(CANVAS_WIDTH * SCALE, CANVAS_HEIGHT * SCALE);
 
     InitPlayer(scene.player);
@@ -86,10 +73,34 @@ void InitScene(Scene &scene)
         scene.skySphereModel.materials[i].shader = scene.skyShader;
     }
 
-    for(int i = 0; i < scene.terrainModel.materialCount; i++)
-    {
-        scene.terrainModel.materials[i].shader = scene.flatShader;
-    }
+    //fog Sahder
+
+    scene.viewPos = camera.position;
+
+    scene.fogDensity = 0.00025f;
+
+    scene.fogShader = LoadShader("shaders/fog.vs", "shaders/fog.fs");
+
+    scene.fogMinIntensityLoc = GetShaderLocation(scene.fogShader, "minIntensity");
+    scene.fogMaxIntenistyLoc = GetShaderLocation(scene.fogShader, "maxIntensity");
+    
+    scene.fogLightDirLoc = GetShaderLocation(scene.fogShader, "lightDir");
+    scene.fogColorLoc = GetShaderLocation(scene.fogShader, "fogColor");
+
+    scene.fogDensityLoc = GetShaderLocation(scene.fogShader, "fogDensity");
+    scene.viewPosLoc = GetShaderLocation(scene.fogShader, "viewPos");
+
+    SetShaderValue(scene.fogShader, scene.fogLightDirLoc, &scene.lightDir, SHADER_UNIFORM_VEC3);
+    SetShaderValue(scene.fogShader, scene.fogMinIntensityLoc, & scene.minIntensity, SHADER_UNIFORM_FLOAT);
+    SetShaderValue(scene.fogShader, scene.fogMaxIntenistyLoc, & scene.maxIntensity, SHADER_UNIFORM_FLOAT);
+
+    SetShaderValue(scene.fogShader, scene.fogColorLoc, &baseColor, SHADER_UNIFORM_VEC4);
+    
+    SetShaderValue(scene.fogShader, scene.fogDensityLoc, &scene.fogDensity, SHADER_UNIFORM_FLOAT);
+
+    SetShaderValue(scene.fogShader, scene.viewPosLoc, &scene.viewPos, SHADER_UNIFORM_VEC3);
+
+    InitTerrain(scene.terrain, scene.fogShader, DUNES);
 }
 
 void UpdateScene(Scene &scene, float dt)
@@ -101,6 +112,12 @@ void UpdateScene(Scene &scene, float dt)
     UpdatePlayer(player, dt);
 
     UpdateBody(player.aircraft.body, dt);
+
+    scene.viewPos = camera.position;
+
+    SetShaderValue(scene.fogShader, scene.viewPosLoc, &scene.viewPos, SHADER_UNIFORM_VEC3);
+
+    std::cout<<"fog den loc "<<scene.fogColorLoc<<"\n";
 
     if(!player.orbitCamera) UpdateChaseCamera(player, player.aircraft.body.transform, dt);
     else UpdateOrbitCamera(player, dt);
@@ -126,8 +143,6 @@ void UpdateScene(Scene &scene, float dt)
     std::cout<<"mesh count: "<<GetAircraftModel(player.aircraft).meshCount<<"\n";
 }
 
-//render the player into a separate texture with its own clip planes
-
 void DrawGameplay(Scene &scene)
 {
     Player& player = scene.player;
@@ -146,11 +161,11 @@ void DrawGameplay(Scene &scene)
 
     glClear(GL_DEPTH_BUFFER_BIT);
 
-    rlSetClipPlanes(200.0, 5000.0);
+    rlSetClipPlanes(60.0, 4000.0);
 
     BeginMode3D(camera);
 
-    DrawModel(scene.terrainModel, {0,0,0}, 1, BEIGE);
+    DrawTerrain(scene.terrain);
 
     EndMode3D();
 
@@ -211,5 +226,11 @@ void UnloadScene(Scene &scene)
 {
     UnloadShader(scene.flatShader);
 
+    UnloadShader(scene.skyShader);
+
+    UnloadShader(scene.fogShader);
+
     UnloadRenderTexture(scene.gameplayCanvas);
+
+    DestroyTerrain(scene.terrain);
 }

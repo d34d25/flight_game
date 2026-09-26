@@ -4,7 +4,9 @@
 
 #include "scene.h"
 
-Scene testScene;
+#include <memory>
+
+std::unique_ptr<Scene> testScene;
 
 //leaving this for emscripten
 void RunGame()
@@ -18,7 +20,9 @@ int main()
 
     LoadAssets();
 
-    InitScene(testScene);
+    testScene = std::make_unique<Scene>();
+
+    InitScene(*testScene);
 
     SetTargetFPS(60);
 
@@ -26,22 +30,24 @@ int main()
     {
         float dt = GetFrameTime();
 
-        UpdateScene(testScene, dt);
+        UpdateScene(*testScene, dt);
 
         BeginDrawing();
 
         ClearBackground(SKYBLUE);
         
-        DrawScene(testScene);
+        DrawScene(*testScene);
 
         DrawFPS(10,10);
 
         EndDrawing();
     }
-    
-    CloseWindow();
 
-    UnloadScene(testScene);
+    UnloadScene(*testScene);
+
+    testScene.reset();
+
+    CloseWindow();
 
     return 0;
 }
