@@ -13,8 +13,8 @@
 constexpr float NATIVE_WIDTH = 1600;
 constexpr float NATIVE_HEIGHT = 900;
 
-constexpr float CANVAS_WIDTH = 256;
-constexpr float CANVAS_HEIGHT = 144;
+constexpr float CANVAS_WIDTH = 256;//256;
+constexpr float CANVAS_HEIGHT = 144;//144;
 
 constexpr int SCALE = 4;
 
@@ -57,6 +57,9 @@ struct Scene
 
     //fog shader
     float fogDensity;
+
+    float fogStart;
+    float fogEnd;
     //------------------
 
     //flat shader
@@ -83,6 +86,8 @@ struct Scene
     int fogColorLoc;
     int fogDensityLoc;
     int viewPosLoc;
+    int fogStartLoc;
+    int fogEndLoc;
     //------------------
 };
 

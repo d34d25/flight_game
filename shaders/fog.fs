@@ -18,6 +18,9 @@ uniform float maxIntensity;
 uniform vec3 viewPos;
 uniform float fogDensity;
 
+uniform float fogStart;
+uniform float fogEnd;
+
 void main()
 {
 	vec3 norm = normalize(fragNormal);
@@ -34,9 +37,6 @@ void main()
     //fog
 
     float dist = length(viewPos - fragPosition);
-
-    float fogStart = 2500.0;
-    float fogEnd = 4000.0;
 
     float fogFactor = (fogEnd - dist) / (fogEnd - fogStart);  //1.0 / exp((dist * fogDensity) * (dist * fogDensity));
 

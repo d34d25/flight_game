@@ -26,9 +26,11 @@ void InitScene(Scene &scene)
 
     Model& playerModel = GetAircraftModel(scene.player.aircraft);
 
+    const AircraftConfig& config = aircraftsDB[scene.player.aircraft.type];
+
     for(int i = 0; i < playerModel.materialCount; i++)
     {
-        if(i != 1) playerModel.materials[i].shader = scene.flatShader;
+        if(i != config.engineMaterial) playerModel.materials[i].shader = scene.flatShader;
     }
 
     //sky sphere
@@ -75,6 +77,9 @@ void InitScene(Scene &scene)
 
     //fog Sahder
 
+    scene.fogStart = 2500.0f;
+    scene.fogEnd = 4000.0f;
+
     scene.viewPos = camera.position;
 
     scene.fogDensity = 0.00025f;
@@ -90,6 +95,9 @@ void InitScene(Scene &scene)
     scene.fogDensityLoc = GetShaderLocation(scene.fogShader, "fogDensity");
     scene.viewPosLoc = GetShaderLocation(scene.fogShader, "viewPos");
 
+    scene.fogStartLoc = GetShaderLocation(scene.fogShader, "fogStart");
+    scene.fogEndLoc = GetShaderLocation(scene.fogShader, "fogEnd");
+
     SetShaderValue(scene.fogShader, scene.fogLightDirLoc, &scene.lightDir, SHADER_UNIFORM_VEC3);
     SetShaderValue(scene.fogShader, scene.fogMinIntensityLoc, & scene.minIntensity, SHADER_UNIFORM_FLOAT);
     SetShaderValue(scene.fogShader, scene.fogMaxIntenistyLoc, & scene.maxIntensity, SHADER_UNIFORM_FLOAT);
@@ -99,6 +107,9 @@ void InitScene(Scene &scene)
     SetShaderValue(scene.fogShader, scene.fogDensityLoc, &scene.fogDensity, SHADER_UNIFORM_FLOAT);
 
     SetShaderValue(scene.fogShader, scene.viewPosLoc, &scene.viewPos, SHADER_UNIFORM_VEC3);
+
+    SetShaderValue(scene.fogShader, scene.fogStartLoc, &scene.fogStart, SHADER_UNIFORM_FLOAT);
+    SetShaderValue(scene.fogShader, scene.fogEndLoc, &scene.fogEnd, SHADER_UNIFORM_FLOAT);
 
     InitTerrain(scene.terrain, scene.fogShader, DUNES);
 }
@@ -117,7 +128,9 @@ void UpdateScene(Scene &scene, float dt)
 
     SetShaderValue(scene.fogShader, scene.viewPosLoc, &scene.viewPos, SHADER_UNIFORM_VEC3);
 
-    std::cout<<"fog den loc "<<scene.fogColorLoc<<"\n";
+    Model& playerModel = GetAircraftModel(scene.player.aircraft);
+
+    std::cout<<"player model mat count: "<<playerModel.materialCount<<"\n";
 
     if(!player.orbitCamera) UpdateChaseCamera(player, player.aircraft.body.transform, dt);
     else UpdateOrbitCamera(player, dt);

@@ -63,6 +63,8 @@ struct AircraftConfig
 
     float bank;
     float bankPitch;
+
+    int engineMaterial;
 };
 
 struct Aircraft
@@ -95,7 +97,11 @@ inline void LoadAssets()
     //F-15
     AircraftConfig& f15 = aircraftsDB[F_15];
 
-    f15.model = LoadModel("assets/models/f-15.obj");
+    f15.model = LoadModel("assets/models/f-15s.obj");
+
+    //f15.engineMaterial = 1;
+
+    f15.engineMaterial = 13;
         
     f15.angularDrag = {2,2,2};
 

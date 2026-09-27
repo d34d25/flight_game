@@ -79,7 +79,9 @@ inline void InitPlayer(Player& player)
 
     SetShaderValue(player.engineShader, player.engineBrightnessLoc, &player.engineGlow, SHADER_UNIFORM_FLOAT);
 
-    GetAircraftModel(player.aircraft).materials[1].shader = player.engineShader;
+    const AircraftConfig& config = aircraftsDB[player.aircraft.type];
+
+    GetAircraftModel(player.aircraft).materials[config.engineMaterial].shader = player.engineShader;
 
     Vector3 bodyDirection = GetWorldVectorFromLocalVector(player.aircraft.body.transform.rotation, LOCAL_FORWARD);
 
