@@ -4,8 +4,6 @@ void UpdatePlayerInput(Player &player)
 {
     if(IsKeyPressed(KEY_TWO))
     {
-        //HideCursor();
-
         DisableCursor();
 
         player.orbitCamera = true;
@@ -13,8 +11,6 @@ void UpdatePlayerInput(Player &player)
 
     if(IsKeyPressed(KEY_ONE))
     {
-        //ShowCursor();
-
         EnableCursor();
 
         player.orbitCamera = false;

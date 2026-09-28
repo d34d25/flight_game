@@ -4,6 +4,8 @@
 
 #include "weapons.h"
 
+#include "collisions.h"
+
 //forces
 constexpr float FAKE_GRAVITY = 40.0f;
 
@@ -23,6 +25,8 @@ enum AircraftType
 struct AircraftConfig
 {
     Model model;
+
+    Collider collider;
 
     Vector3 gunOffset;
 
@@ -108,7 +112,7 @@ inline void LoadAssets()
     f15.angularDrag = {2,2,2};
 
     f15.forwardDrag = 0.2f;
-    f15.sideDrag = 4.0f;
+    f15.sideDrag = 4.0f;;
 
     f15.maxSpeed = 250.0f;
     f15.idleSpeed = 140.0f;
@@ -135,9 +139,19 @@ inline void LoadAssets()
 
     f15.mslType = STANDARD_MSL;
 
-    Vector3 f15MSLOffset = {-1.0f, -0.5f, -6.8f};
+    Vector3 f15MSLOffset = {-1.0f, -0.5f, -3.0f};
     
     f15.mslOffset = f15MSLOffset;
+
+    f15.collider = CreatePrismatoid(
+        1.25f, //base w
+        0.25f, //base l
+        0.5f, //top w
+        0.2f, // top h
+        2.5f, // height
+        QuaternionFromAxisAngle(LOCAL_RIGHT, 1.57f),
+        {0.0f, 0.05f, 0.0f}
+    );
 
     //common values
 

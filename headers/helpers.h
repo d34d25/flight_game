@@ -3,6 +3,8 @@
 #include "raylib.h"
 #include "raymath.h"
 
+#include <vector>
+
 constexpr Vector3 LOCAL_FORWARD = {0.0f,0.0f,1.0f};
 
 constexpr Vector3 LOCAL_UP = {0.0f,1.0f,0.0f};
@@ -53,4 +55,22 @@ inline Vector2 _3DXZTo2DXY(Vector2 xz, float worldSize, int imgWidth, int imgHei
     xzvec.y *= imgHeight;
 
     return xzvec;
+}
+
+inline std::vector<Vector3> GetTransformedVertices(const std::vector<Vector3>& vertices, const Transform& transform)
+{
+    std::vector<Vector3> transformedVertices = {};
+
+    for(const Vector3& v : vertices)
+    {
+        Vector3 vertex = v;
+
+        vertex = Vector3RotateByQuaternion(vertex, transform.rotation);
+
+        vertex = Vector3Add(vertex, transform.translation);
+
+        transformedVertices.push_back(vertex);
+    }
+
+    return transformedVertices;
 }

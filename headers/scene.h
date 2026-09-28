@@ -98,7 +98,12 @@ struct Scene
     int fogEndLoc;
     //------------------
 
+    //debug
     bool playerCollidedTerrain = false;
+    bool playerCollidedSATCCD = false;
+
+    Transform obstacleTransform;
+    Collider obstacleCollider;
 };
 
 void InitScene(Scene& scene);
@@ -213,5 +218,18 @@ inline void DrawMissiles(Aircraft& aircraft, Vector3 playerPos)
 
             rlPopMatrix();
         }
+    }
+}
+
+inline void DrawCollider(const Collider& collider, const Transform& transform, Vector3 playerPos)
+{
+    std::vector<Vector3> vertices = GetTransformedVertices(collider.localVertices, transform);
+    
+    for(const std::pair<int, int>& edge : collider.edgesIndexes)
+    {
+        Vector3 startPos = vertices[edge.first] - playerPos;
+        Vector3 endPos = vertices[edge.second] - playerPos;
+
+        DrawLine3D(startPos, endPos, RED);
     }
 }

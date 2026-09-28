@@ -117,6 +117,14 @@ void InitScene(Scene &scene)
     SetShaderValue(scene.fogShader, scene.fogEndLoc, &scene.fogEnd, SHADER_UNIFORM_FLOAT);
 
     InitTerrain(scene.terrain, scene.fogShader, scene.terrainType);
+
+    //debug
+
+    scene.obstacleCollider = CreatePrismatoid(50,50,20,20,1000);
+    scene.obstacleTransform = {};
+    scene.obstacleTransform.rotation = QuaternionIdentity();
+    scene.obstacleTransform.translation = scene.player.aircraft.body.transform.translation + Vector3{0,0, 1600};
+    scene.obstacleTransform.scale = {1,1,1};
 }
 
 void UpdateScene(Scene &scene, float dt)
@@ -129,13 +137,30 @@ void UpdateScene(Scene &scene, float dt)
 
     scene.playerCollidedTerrain = CollidedWithTerrain(player.aircraft.body.transform.translation, WORLD_SIZE, terrainDB[scene.terrainType].ySize, scene.terrain.masterImg);
 
+    scene.playerCollidedSATCCD = SAT3DCCD(
+
+        aircraftsDB[player.aircraft.type].collider,
+        player.aircraft.body.transform,
+        player.aircraft.body.linearVelocity + player.aircraft.body.angularVelocity,
+
+        scene.obstacleCollider, 
+        scene.obstacleTransform,
+        {0,0,0},
+        
+        dt
+    );
+
     if(scene.playerCollidedTerrain)
     {
-        std::cout<<"COLLIDED WITH TERRAIN\n";
-
         player.aircraft.debugColor = RED;
     }
-    else 
+
+    if(scene.playerCollidedSATCCD)
+    {
+        player.aircraft.debugColor = GREEN;
+    }
+    
+    if(!scene.playerCollidedSATCCD && !scene.playerCollidedTerrain)
     {
         player.aircraft.debugColor = WHITE;
     }
@@ -143,10 +168,6 @@ void UpdateScene(Scene &scene, float dt)
     scene.viewPos = renderCamera.position;
 
     SetShaderValue(scene.fogShader, scene.viewPosLoc, &scene.viewPos, SHADER_UNIFORM_VEC3);
-
-    //Model& playerModel = GetAircraftModel(scene.player.aircraft);
-
-    //std::cout<<"player model mat count: "<<playerModel.materialCount<<"\n";
 
     if(!player.orbitCamera) UpdateChaseCamera(player, player.aircraft.body.transform, dt);
     else UpdateOrbitCamera(player, dt);
@@ -161,6 +182,16 @@ void UpdateScene(Scene &scene, float dt)
     SetShaderValue(scene.skyShader, scene.minHeightLoc, &scene.minHeight, SHADER_UNIFORM_FLOAT);
     SetShaderValue(scene.skyShader, scene.maxHeightLoc, &scene.maxHeight, SHADER_UNIFORM_FLOAT);
 
+    Vector3 playerPos = player.aircraft.body.transform.translation;
+
+    renderCamera = camera;
+
+    renderCamera.position -= playerPos;
+
+    renderCamera.target -= playerPos;
+
+
+
     /*std::cout<<"\n";
 
     printf("\nforward speed: %.3f   ", GetForwardSpeed(player));
@@ -170,18 +201,6 @@ void UpdateScene(Scene &scene, float dt)
     std::cout<<"missile fired: "<<player.aircraft.mslFired<<"\n";
 
     std::cout<<"mesh count: "<<GetAircraftModel(player.aircraft).meshCount<<"\n";*/
-
-    Vector3 playerPos = player.aircraft.body.transform.translation;
-
-    renderCamera = camera;
-
-    renderCamera.position.x -= playerPos.x;
-    renderCamera.position.y -= playerPos.y;
-    renderCamera.position.z -= playerPos.z;
-
-    renderCamera.target.x -= playerPos.x;
-    renderCamera.target.y -= playerPos.y;
-    renderCamera.target.z -= playerPos.z;
 }
 
 void DrawGameplay(Scene &scene)
@@ -205,6 +224,8 @@ void DrawGameplay(Scene &scene)
 
     DrawTerrain(scene.terrain, playerPos);
 
+    DrawCollider(scene.obstacleCollider, scene.obstacleTransform, playerPos);
+
     EndMode3D();
 
     EndTextureMode();
@@ -220,6 +241,8 @@ void DrawGameplay(Scene &scene)
     BeginMode3D(renderCamera);
 
     DrawAircraft(player.aircraft);
+
+    DrawCollider(aircraftsDB[player.aircraft.type].collider, player.aircraft.body.transform, playerPos);
 
     if(scene.playerCollidedTerrain)
     {
