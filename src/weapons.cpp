@@ -136,7 +136,7 @@ void UpdateTrailPool(TrailPool &trailpool, float dt)
     {
         Trail* t = trailpool.activeTrails[i];
 
-        if(!t)
+        if(t)
         {
             UpdateTrail(t, dt);
 
@@ -167,6 +167,8 @@ void SpawnTrail(TrailPool &trailpool, Vector3 position, Vector3 velocity)
     {
         Trail* t = trailpool.inactiveTrails.back();
         trailpool.inactiveTrails.pop_back();
+
+        t->alpha = (float)TRAIL_MAX_ALPHA;
 
         t->position = position;
         t->velocity = velocity;

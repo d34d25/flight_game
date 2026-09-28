@@ -16,6 +16,10 @@ void RunGame()
 
 int main()
 {
+    float accumulator = 0.0f;
+
+    float fixedDt = 1.0f / 60.0f;
+
     InitWindow(NATIVE_WIDTH, NATIVE_HEIGHT, "");
 
     LoadAssets();
@@ -30,7 +34,18 @@ int main()
     {
         float dt = GetFrameTime();
 
-        UpdateScene(*testScene, dt);
+        if(dt > 0.25f) dt = 0.25f;
+
+        accumulator += dt;
+
+        UpdatePlayerInput(testScene->player);
+
+        while (accumulator >= fixedDt)
+        {
+            UpdateScene(*testScene, fixedDt);
+
+            accumulator -= fixedDt;
+        }
 
         BeginDrawing();
 

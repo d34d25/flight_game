@@ -75,6 +75,8 @@ struct Aircraft
 
     MissilePool missilePool;
 
+    Color debugColor = WHITE;
+    
     AircraftType type;
 
     float thrust = 0.0f;
@@ -99,9 +101,9 @@ inline void LoadAssets()
 
     f15.model = LoadModel("assets/models/f-15s.obj");
 
-    //f15.engineMaterial = 1;
+    //f15.engineMaterial = 1; //f15
 
-    f15.engineMaterial = 13;
+    f15.engineMaterial = 13; //f15s
         
     f15.angularDrag = {2,2,2};
 

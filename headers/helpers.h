@@ -17,6 +17,8 @@ constexpr Color TRANSPARENT_BLUE = {150, 150, 255, 255};
 
 constexpr Color DEEP_BLUE = {25,25,100,255};
 
+constexpr float WORLD_SIZE =  50000;
+
 inline void FollowTransform(Transform& transformA, const Transform& transformB, const Vector3& offset)
 {
     Vector3 rotatedOffset = Vector3RotateByQuaternion(offset, transformB.rotation);
@@ -39,4 +41,16 @@ inline Vector3 GetWorldVectorFromLocalVector(const Quaternion& rotation, const V
 inline float GetDesiredValue(float desiredValue, float drag)
 {
     return desiredValue * drag;
+}
+
+inline Vector2 _3DXZTo2DXY(Vector2 xz, float worldSize, int imgWidth, int imgHeight)
+{
+    Vector2 xzvec = xz;
+
+    xzvec /= worldSize;
+
+    xzvec.x *= imgWidth;
+    xzvec.y *= imgHeight;
+
+    return xzvec;
 }

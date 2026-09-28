@@ -6,7 +6,11 @@
 
 #include "body.h"
 
+#include <iostream>
+
 //Bullets
+
+const unsigned char TRAIL_MAX_ALPHA = 200;
 
 struct BulletPoolProperties
 {
@@ -147,6 +151,8 @@ struct Trail
     TrailProperties properties;
 
     float currentTime;
+
+    float alpha = (float)TRAIL_MAX_ALPHA;
 };
 
 inline void UpdateTrail(Trail* trail, float dt)
@@ -154,6 +160,12 @@ inline void UpdateTrail(Trail* trail, float dt)
     trail->properties.radius += trail->properties.radiusIncreaseRate * dt;
 
     trail->position += trail->velocity * dt;
+
+    float alphaStep = 250.0f;
+
+    trail->alpha -= alphaStep * dt;
+
+    if(trail->alpha <= 0.0f) trail->alpha = 0.0f;
 }
 
 inline TrailProperties trailsDB[TRAIL_COUNT];

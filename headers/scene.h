@@ -10,6 +10,8 @@
 
 #include "terrain.h"
 
+#include "collisions.h"
+
 constexpr float NATIVE_WIDTH = 1600;
 constexpr float NATIVE_HEIGHT = 900;
 
@@ -18,6 +20,8 @@ constexpr float CANVAS_HEIGHT = 144;//144;
 
 constexpr int SCALE = 4;
 
+inline Camera3D renderCamera;
+
 struct Scene
 {
     Player player;
@@ -25,6 +29,8 @@ struct Scene
     Terrain terrain;
 
     Model skySphereModel;
+
+    RenderTexture terrainCanvas;
 
     RenderTexture gameplayCanvas;
 
@@ -45,6 +51,8 @@ struct Scene
     //------------------
 
     Vector3 lightDir;
+
+    TerrainType terrainType;
 
     float minHeight;
     float maxHeight;
@@ -89,6 +97,8 @@ struct Scene
     int fogStartLoc;
     int fogEndLoc;
     //------------------
+
+    bool playerCollidedTerrain = false;
 };
 
 void InitScene(Scene& scene);
@@ -136,10 +146,10 @@ inline void DrawAircraft(Aircraft& aircraft)
 
     QuaternionToAxisAngle(aircraft.body.transform.rotation, &rotationAxis, &rotationAngle);
 
-    DrawModelEx(model, aircraft.body.transform.translation, rotationAxis, rotationAngle * RAD2DEG, {1.0f,1.0f,1.0f}, WHITE);
+    DrawModelEx(model, {0,0,0}, rotationAxis, rotationAngle * RAD2DEG, {1.0f,1.0f,1.0f}, aircraft.debugColor);
 }
 
-inline void DrawBullets(Aircraft& aircraft)
+inline void DrawBullets(Aircraft& aircraft, Vector3 playerPos)
 {
     for(Bullet* b : aircraft.bulletpool.activeBullets)
     {
@@ -147,7 +157,7 @@ inline void DrawBullets(Aircraft& aircraft)
 
         rlPushMatrix();
 
-        rlTranslatef(b->transform.translation.x, b->transform.translation.y, b->transform.translation.z);
+        rlTranslatef(b->transform.translation.x - playerPos.x, b->transform.translation.y - playerPos.y, b->transform.translation.z - playerPos.z);
 
         rlMultMatrixf(MatrixToFloat(QuaternionToMatrix(b->transform.rotation)));
 
@@ -161,7 +171,7 @@ inline void DrawBullets(Aircraft& aircraft)
     }
 }
 
-inline void DrawMissiles(Aircraft& aircraft)
+inline void DrawMissiles(Aircraft& aircraft, Vector3 playerPos)
 {
     for(Missile* m : aircraft.missilePool.activeMissiles)
     {
@@ -169,7 +179,7 @@ inline void DrawMissiles(Aircraft& aircraft)
 
         rlPushMatrix();
 
-        rlTranslatef(m->body.transform.translation.x, m->body.transform.translation.y, m->body.transform.translation.z);
+        rlTranslatef(m->body.transform.translation.x - playerPos.x, m->body.transform.translation.y - playerPos.y, m->body.transform.translation.z - playerPos.z);
 
         rlMultMatrixf(MatrixToFloat(QuaternionToMatrix(m->body.transform.rotation)));
 
@@ -187,13 +197,13 @@ inline void DrawMissiles(Aircraft& aircraft)
 
             Color trailcolor = WHITE;
 
-            trailcolor.a = 200;
+            trailcolor.a = (unsigned char)t->alpha;
 
             rlPushMatrix();
 
-            Matrix cameraMatrix = GetCameraMatrix(camera);
+            Matrix cameraMatrix = GetCameraMatrix(renderCamera);
 
-            Matrix lookMatrix = MatrixLookAt(t->position, camera.position, LOCAL_UP);
+            Matrix lookMatrix = MatrixLookAt(t->position - playerPos, renderCamera.position, LOCAL_UP);
 
             Matrix billboardMatrix = MatrixInvert(lookMatrix);
 

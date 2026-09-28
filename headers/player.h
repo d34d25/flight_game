@@ -2,6 +2,8 @@
 
 #include "aircraft.h"
 
+#include "helpers.h"
+
 constexpr float BASE_FOVY = 45.0f;
 
 inline Camera3D camera = {};
@@ -68,8 +70,12 @@ inline void InitCamera()
 inline void InitPlayer(Player& player)
 {
     player.aircraft = InitAircraft(F_15);
-    
-    player.aircraft.body.transform.translation.y = 800.0f;
+
+    player.aircraft.body.transform.translation = {
+        WORLD_SIZE * 0.5f,
+        800.0f,
+        WORLD_SIZE * 0.5f
+    };
     
     player.engineGlow = 1.0f;
 

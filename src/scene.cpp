@@ -4,7 +4,10 @@
 
 void InitScene(Scene &scene)
 {
+    scene.terrainCanvas = LoadRenderTexture(CANVAS_WIDTH * SCALE, CANVAS_HEIGHT * SCALE);
     scene.gameplayCanvas = LoadRenderTexture(CANVAS_WIDTH * SCALE, CANVAS_HEIGHT * SCALE);
+
+    scene.terrainType = DUNES;
 
     InitPlayer(scene.player);
     InitCamera();
@@ -32,6 +35,8 @@ void InitScene(Scene &scene)
     {
         if(i != config.engineMaterial) playerModel.materials[i].shader = scene.flatShader;
     }
+
+    renderCamera = camera;
 
     //sky sphere
 
@@ -80,7 +85,7 @@ void InitScene(Scene &scene)
     scene.fogStart = 2500.0f;
     scene.fogEnd = 4000.0f;
 
-    scene.viewPos = camera.position;
+    scene.viewPos = renderCamera.position;
 
     scene.fogDensity = 0.00025f;
 
@@ -111,26 +116,37 @@ void InitScene(Scene &scene)
     SetShaderValue(scene.fogShader, scene.fogStartLoc, &scene.fogStart, SHADER_UNIFORM_FLOAT);
     SetShaderValue(scene.fogShader, scene.fogEndLoc, &scene.fogEnd, SHADER_UNIFORM_FLOAT);
 
-    InitTerrain(scene.terrain, scene.fogShader, DUNES);
+    InitTerrain(scene.terrain, scene.fogShader, scene.terrainType);
 }
 
 void UpdateScene(Scene &scene, float dt)
 {
     Player& player = scene.player;
 
-    UpdatePlayerInput(player);
-
     UpdatePlayer(player, dt);
 
     UpdateBody(player.aircraft.body, dt);
 
-    scene.viewPos = camera.position;
+    scene.playerCollidedTerrain = CollidedWithTerrain(player.aircraft.body.transform.translation, WORLD_SIZE, terrainDB[scene.terrainType].ySize, scene.terrain.masterImg);
+
+    if(scene.playerCollidedTerrain)
+    {
+        std::cout<<"COLLIDED WITH TERRAIN\n";
+
+        player.aircraft.debugColor = RED;
+    }
+    else 
+    {
+        player.aircraft.debugColor = WHITE;
+    }
+
+    scene.viewPos = renderCamera.position;
 
     SetShaderValue(scene.fogShader, scene.viewPosLoc, &scene.viewPos, SHADER_UNIFORM_VEC3);
 
-    Model& playerModel = GetAircraftModel(scene.player.aircraft);
+    //Model& playerModel = GetAircraftModel(scene.player.aircraft);
 
-    std::cout<<"player model mat count: "<<playerModel.materialCount<<"\n";
+    //std::cout<<"player model mat count: "<<playerModel.materialCount<<"\n";
 
     if(!player.orbitCamera) UpdateChaseCamera(player, player.aircraft.body.transform, dt);
     else UpdateOrbitCamera(player, dt);
@@ -145,7 +161,7 @@ void UpdateScene(Scene &scene, float dt)
     SetShaderValue(scene.skyShader, scene.minHeightLoc, &scene.minHeight, SHADER_UNIFORM_FLOAT);
     SetShaderValue(scene.skyShader, scene.maxHeightLoc, &scene.maxHeight, SHADER_UNIFORM_FLOAT);
 
-    std::cout<<"\n";
+    /*std::cout<<"\n";
 
     printf("\nforward speed: %.3f   ", GetForwardSpeed(player));
 
@@ -153,46 +169,66 @@ void UpdateScene(Scene &scene, float dt)
 
     std::cout<<"missile fired: "<<player.aircraft.mslFired<<"\n";
 
-    std::cout<<"mesh count: "<<GetAircraftModel(player.aircraft).meshCount<<"\n";
+    std::cout<<"mesh count: "<<GetAircraftModel(player.aircraft).meshCount<<"\n";*/
+
+    Vector3 playerPos = player.aircraft.body.transform.translation;
+
+    renderCamera = camera;
+
+    renderCamera.position.x -= playerPos.x;
+    renderCamera.position.y -= playerPos.y;
+    renderCamera.position.z -= playerPos.z;
+
+    renderCamera.target.x -= playerPos.x;
+    renderCamera.target.y -= playerPos.y;
+    renderCamera.target.z -= playerPos.z;
 }
 
 void DrawGameplay(Scene &scene)
 {
     Player& player = scene.player;
 
-    BeginTextureMode(scene.gameplayCanvas);
+    Vector3 playerPos = player.aircraft.body.transform.translation;
 
     ClearBackground(SKYBLUE);
 
-    rlSetClipPlanes(10.0, 200.0);
+    //terrain
+    BeginTextureMode(scene.terrainCanvas);
 
-    BeginMode3D(camera);
+    ClearBackground(BLANK);
+
+    rlSetClipPlanes(3.0, 4000.0);
+
+    BeginMode3D(renderCamera);
 
     DrawSky(scene);
 
-    EndMode3D();
-
-    glClear(GL_DEPTH_BUFFER_BIT);
-
-    rlSetClipPlanes(60.0, 4000.0);
-
-    BeginMode3D(camera);
-
-    DrawTerrain(scene.terrain);
+    DrawTerrain(scene.terrain, playerPos);
 
     EndMode3D();
 
-    glClear(GL_DEPTH_BUFFER_BIT);
+    EndTextureMode();
+
+    //gameplay
+
+    BeginTextureMode(scene.gameplayCanvas);
+
+    ClearBackground(BLANK);
     
-    rlSetClipPlanes(3.0, 1000.0);
+    rlSetClipPlanes(3.0, 500.0);
 
-    BeginMode3D(camera);
+    BeginMode3D(renderCamera);
 
     DrawAircraft(player.aircraft);
 
-    DrawMissiles(player.aircraft);
+    if(scene.playerCollidedTerrain)
+    {
+        DrawSphere({0,0,0}, 0.1f, RED);
+    }
 
-    DrawBullets(player.aircraft);
+    DrawMissiles(player.aircraft, playerPos);
+
+    DrawBullets(player.aircraft, playerPos);
 
     EndMode3D();
 
@@ -219,11 +255,26 @@ void DrawScene(Scene &scene)
         (float)-scene.gameplayCanvas.texture.height
     };
 
+    Rectangle sourceTerrainRec = {
+        0, 0,
+        (float)scene.terrainCanvas.texture.width,
+        (float)-scene.terrainCanvas.texture.height
+    };
+
     Rectangle destGameplayRec = {
         offsetX, offsetY,
         NATIVE_WIDTH,
         NATIVE_HEIGHT
     };
+
+    DrawTexturePro(
+        scene.terrainCanvas.texture,
+        sourceTerrainRec,
+        destGameplayRec,
+        {0.0f,0.0f},
+        0.0f,
+        WHITE
+    );
 
     DrawTexturePro(
         scene.gameplayCanvas.texture,

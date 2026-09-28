@@ -2,9 +2,23 @@
 
 void UpdatePlayerInput(Player &player)
 {
-    if(IsKeyPressed(KEY_TWO)) player.orbitCamera = true;
+    if(IsKeyPressed(KEY_TWO))
+    {
+        //HideCursor();
 
-    if(IsKeyPressed(KEY_ONE)) player.orbitCamera = false;
+        DisableCursor();
+
+        player.orbitCamera = true;
+    }
+
+    if(IsKeyPressed(KEY_ONE))
+    {
+        //ShowCursor();
+
+        EnableCursor();
+
+        player.orbitCamera = false;
+    }
 
     player.throttleUp = player.orbitCamera ? IsKeyDown(KEY_LEFT_SHIFT) : IsKeyDown(KEY_W) ;
     player.throttleDown = player.orbitCamera ? IsKeyDown(KEY_LEFT_CONTROL) : IsKeyDown(KEY_S);
@@ -242,8 +256,6 @@ void UpdateChaseCamera(const Player& player, const Transform &targerTransform, f
 
 void UpdateOrbitCamera(const Player &player, float dt)
 {
-    HideCursor();
-
     int centerX = GetScreenWidth() / 2;
     int centerY = GetScreenHeight() / 2;
 
@@ -251,12 +263,12 @@ void UpdateOrbitCamera(const Player &player, float dt)
 
     float wheelMove = GetMouseWheelMove();
 
-    orbitCameraDistance += wheelMove;
+    orbitCameraDistance += wheelMove * 80 * dt;
 
     orbitCameraDistance = Clamp(orbitCameraDistance, -20.0f, -5.0f);
 
-    orbitCameraYaw -= mouseDelta.x * 0.2f * dt;
-    orbitCameraPitch -= mouseDelta.y * 0.2f * dt;
+    orbitCameraYaw -= mouseDelta.x * 0.0032f;
+    orbitCameraPitch -= mouseDelta.y * 0.0032f;
 
     orbitCameraPitch = Clamp(orbitCameraPitch, -1.4f, 1.4f);
 
@@ -275,6 +287,4 @@ void UpdateOrbitCamera(const Player &player, float dt)
     camera.target = target;
 
     camera.up = LOCAL_UP;
-
-    SetMousePosition(centerX, centerY);
 }
