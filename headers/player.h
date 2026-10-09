@@ -69,7 +69,7 @@ inline void InitCamera()
 
 inline void InitPlayer(Player& player)
 {
-    player.aircraft = InitAircraft(SUTYPE);
+    player.aircraft = InitAircraft(F_15);
 
     player.aircraft.body.transform.translation = {
         WORLD_SIZE * 0.5f,
