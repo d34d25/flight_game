@@ -19,6 +19,7 @@ constexpr float STALL_TORQUE = 0.5f;
 enum AircraftType
 {
     F_15,
+    SUTYPE,
     AIRCRAFT_COUNT
 };
 
@@ -92,6 +93,8 @@ struct Aircraft
 
 inline AircraftConfig aircraftsDB[AIRCRAFT_COUNT];
 
+void InitAircraftDB();
+
 inline void LoadAssets()
 {
     InitGunDB();
@@ -100,71 +103,7 @@ inline void LoadAssets()
 
     InitTrailDB();
 
-    //F-15
-    AircraftConfig& f15 = aircraftsDB[F_15];
-
-    f15.model = LoadModel("assets/models/f-15s.obj");
-
-    //f15.engineMaterial = 1; //f15
-
-    f15.engineMaterial = 13; //f15s
-        
-    f15.angularDrag = {2,2,2};
-
-    f15.forwardDrag = 0.2f;
-    f15.sideDrag = 4.0f;;
-
-    f15.maxSpeed = 250.0f;
-    f15.idleSpeed = 140.0f;
-
-    f15.stallSpeed = 70.0f;
-    f15.recoverySpeed = 80.0f;
-
-    f15.maxThrust = GetDesiredValue(f15.maxSpeed, f15.forwardDrag);
-    f15.idleThrust = GetDesiredValue(f15.idleSpeed, f15.forwardDrag);
-
-    f15.acceleration = GetDesiredValue(40, f15.forwardDrag);
-    f15.breakPower = GetDesiredValue(100, f15.forwardDrag);
-
-    f15.recoveryAboveIdle = GetDesiredValue(30, f15.forwardDrag);
-    f15.recoveryBelowIdle = GetDesiredValue(25, f15.forwardDrag);
-
-    f15.pitch = GetDesiredValue(0.6f, f15.angularDrag.x);
-    f15.roll = GetDesiredValue(2.2f, f15.angularDrag.z);
-    f15.yaw = GetDesiredValue(0.15f, f15.angularDrag.y);
-
-    f15.gunType = VULKAN;
-
-    f15.gunOffset = {-0.25f, 0.1f, -6.1f};
-
-    f15.mslType = STANDARD_MSL;
-
-    Vector3 f15MSLOffset = {-1.0f, -0.5f, -3.0f};
-    
-    f15.mslOffset = f15MSLOffset;
-
-    f15.collider = CreatePrismatoid(
-        1.25f, //base w
-        0.25f, //base l
-        0.5f, //top w
-        0.2f, // top h
-        2.5f, // height
-        QuaternionFromAxisAngle(LOCAL_RIGHT, 1.57f),
-        {0.0f, 0.05f, 0.0f}
-    );
-
-    //common values
-
-    for(int i = 0; i < AIRCRAFT_COUNT; i++)
-    {
-        AircraftConfig& config = aircraftsDB[i];
-
-        config.gravity = GetDesiredValue(FAKE_GRAVITY, config.forwardDrag);
-
-        config.bank = GetDesiredValue(BANK, config.angularDrag.y);
-
-        config.bankPitch = GetDesiredValue(BANK_PITCH, config.angularDrag.x);
-    }
+    InitAircraftDB();
 }
 
 inline Body InitAircraftBody(AircraftType type)

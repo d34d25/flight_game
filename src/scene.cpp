@@ -190,8 +190,6 @@ void UpdateScene(Scene &scene, float dt)
 
     renderCamera.target -= playerPos;
 
-
-
     /*std::cout<<"\n";
 
     printf("\nforward speed: %.3f   ", GetForwardSpeed(player));
@@ -242,7 +240,7 @@ void DrawGameplay(Scene &scene)
 
     DrawAircraft(player.aircraft);
 
-    DrawCollider(aircraftsDB[player.aircraft.type].collider, player.aircraft.body.transform, playerPos);
+    //DrawCollider(aircraftsDB[player.aircraft.type].collider, player.aircraft.body.transform, playerPos);
 
     if(scene.playerCollidedTerrain)
     {
