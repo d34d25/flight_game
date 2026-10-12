@@ -7,6 +7,10 @@ varying vec3 fragPosition;
 varying vec3 fragNormal;
 varying vec4 fragColor;
 
+varying vec2 fragTexCoord;
+
+uniform sampler2D texture0;
+
 uniform vec4 fogColor;
 
 uniform vec3 lightDir;
@@ -23,18 +27,26 @@ uniform float fogEnd;
 
 void main()
 {
-	vec3 norm = normalize(fragNormal);
-	vec3 light = normalize(lightDir);
+	//vec3 norm = normalize(fragNormal);
+	//vec3 light = normalize(lightDir);
 
-	float intensity = dot(norm, light);
+	//float intensity = dot(norm, light);
 
-	intensity = clamp(intensity, minIntensity, maxIntensity);
+	//intensity = clamp(intensity, minIntensity, maxIntensity);
 
-	vec4 baseColor = colDiffuse * fragColor;
+	//vec4 baseColor = colDiffuse * fragColor;
 
-    vec4 finalColor = vec4(baseColor.rgb * intensity, 1.0);
+    //vec4 finalColor = vec4(baseColor.rgb * intensity, 1.0);
 
     //fog
+
+    float shadeCount = 16.0;
+
+    vec4 texColor = texture2D(texture0, fragTexCoord);
+
+    vec4 baseColor = texColor * colDiffuse * fragColor;
+
+    vec4 finalColor = vec4(baseColor.rgb * 1.0, 1.0);
 
     float dist = length(viewPos - fragPosition);
 
@@ -42,5 +54,7 @@ void main()
 
     fogFactor = clamp(fogFactor, 0.0, 1.0);
 
-    gl_FragColor = mix(fogColor, finalColor, fogFactor);
+    float finalFactor = floor(fogFactor * shadeCount) / (shadeCount - 1.0);
+
+    gl_FragColor = mix(fogColor, finalColor, finalFactor);
 }

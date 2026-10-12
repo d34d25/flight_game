@@ -26,7 +26,9 @@ struct Scene
 {
     Player player;
 
-    Terrain terrain;
+    //Terrain terrain;
+
+    Model floor;
 
     Model skySphereModel;
 
@@ -152,6 +154,8 @@ inline void DrawAircraft(Aircraft& aircraft)
     QuaternionToAxisAngle(aircraft.body.transform.rotation, &rotationAxis, &rotationAngle);
 
     DrawModelEx(model, {0,0,0}, rotationAxis, rotationAngle * RAD2DEG, {1.0f,1.0f,1.0f}, aircraft.debugColor);
+
+    //DrawModelWiresEx(model, {0,0,0}, rotationAxis, rotationAngle * RAD2DEG, {1.0f,1.0f,1.0f}, BLACK);
 }
 
 inline void DrawBullets(Aircraft& aircraft, Vector3 playerPos)

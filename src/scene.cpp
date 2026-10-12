@@ -14,7 +14,7 @@ void InitScene(Scene &scene)
 
     scene.lightDir = {0.5f, 1.0f, 0.75f};;
 
-    scene.minIntensity = 0.4f;
+    scene.minIntensity = 0.6f;
     scene.maxIntensity = 1.0f;
 
     scene.flatShader = LoadShader("shaders/flat.vs", "shaders/flat.fs");
@@ -33,7 +33,7 @@ void InitScene(Scene &scene)
 
     for(int i = 0; i < playerModel.materialCount; i++)
     {
-        if(i != config.engineMaterial) playerModel.materials[i].shader = scene.flatShader;
+        //if(i != config.engineMaterial) playerModel.materials[i].shader = scene.flatShader;
     }
 
     renderCamera = camera;
@@ -46,8 +46,8 @@ void InitScene(Scene &scene)
 
     scene.skySphereModel = LoadModelFromMesh(skySphereMesh);
 
-    scene.baseColor = TRANSPARENT_BLUE;
-    scene.topColor = DEEP_BLUE;
+    scene.baseColor = SKYBLUE;
+    scene.topColor = BLUE;
     scene.bottomColor = WHITE;
     
     scene.maxHeight = scene.skyRadius * 0.75f;
@@ -116,7 +116,19 @@ void InitScene(Scene &scene)
     SetShaderValue(scene.fogShader, scene.fogStartLoc, &scene.fogStart, SHADER_UNIFORM_FLOAT);
     SetShaderValue(scene.fogShader, scene.fogEndLoc, &scene.fogEnd, SHADER_UNIFORM_FLOAT);
 
-    InitTerrain(scene.terrain, scene.fogShader, scene.terrainType);
+    //InitTerrain(scene.terrain, scene.fogShader, scene.terrainType);
+
+    scene.floor = LoadModelFromMesh(GenMeshPlane(WORLD_SIZE * 2, WORLD_SIZE * 2, 128,128));
+
+    Image floorImg = GenImageChecked(2000,2000, 1, 1, WHITE, Color{235,235,235,255});
+
+    Texture2D floorTexture = LoadTextureFromImage(floorImg);
+
+    UnloadImage(floorImg);
+
+    scene.floor.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = floorTexture;
+
+    scene.floor.materials[0].shader = scene.fogShader;
 
     //debug
 
@@ -135,7 +147,7 @@ void UpdateScene(Scene &scene, float dt)
 
     UpdateBody(player.aircraft.body, dt);
 
-    scene.playerCollidedTerrain = CollidedWithTerrain(player.aircraft.body.transform.translation, WORLD_SIZE, terrainDB[scene.terrainType].ySize, scene.terrain.masterImg);
+    //scene.playerCollidedTerrain = CollidedWithTerrain(player.aircraft.body.transform.translation, WORLD_SIZE, terrainDB[scene.terrainType].ySize, scene.terrain.masterImg);
 
     scene.playerCollidedSATCCD = SAT3DCCD(
 
@@ -220,7 +232,9 @@ void DrawGameplay(Scene &scene)
 
     DrawSky(scene);
 
-    DrawTerrain(scene.terrain, playerPos);
+    //DrawTerrain(scene.terrain, playerPos);
+
+    DrawModel(scene.floor,{-playerPos.x,-playerPos.y,-playerPos.z},1, GREEN);
 
     DrawCollider(scene.obstacleCollider, scene.obstacleTransform, playerPos);
 
@@ -317,5 +331,7 @@ void UnloadScene(Scene &scene)
 
     UnloadRenderTexture(scene.gameplayCanvas);
 
-    DestroyTerrain(scene.terrain);
+    //DestroyTerrain(scene.terrain);
+
+    UnloadModel(scene.floor);
 }

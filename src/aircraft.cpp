@@ -7,7 +7,7 @@ void InitAircraftDB()
 
     f15.model = LoadModel("assets/models/f-15s.obj");
 
-    f15.engineMaterial = 13;
+    f15.engineMaterial = 13;//5;//13;
         
     f15.angularDrag = {2,2,2};
 
@@ -53,9 +53,9 @@ void InitAircraftDB()
 
     AircraftConfig& sutype = aircraftsDB[SUTYPE];
 
-    sutype.model = LoadModel("assets/models/sutype.obj");
+    sutype.model = LoadModel("assets/models/z27.obj");
 
-    sutype.engineMaterial = 4;
+    sutype.engineMaterial = 5;
         
     sutype.angularDrag = {2,2,2};
 

@@ -95,7 +95,7 @@ void InitTrailDB()
     TrailProperties& mslTrail = trailsDB[MSL_TRAIL];
 
     mslTrail.firerate = 0.025f;
-    mslTrail.lifeTime = 2.0f;
+    mslTrail.lifeTime = 0.2f;//2.0f;
     mslTrail.radius = 0.5f;
     mslTrail.radiusIncreaseRate = 0.1f;
 

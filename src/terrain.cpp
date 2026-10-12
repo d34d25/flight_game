@@ -37,7 +37,7 @@ void InitTerrain(Terrain &terrain, Shader &shader, TerrainType type)
 
     terrain.model = LoadModelFromMesh(GenMeshHeightmap(terrain.masterImg, {WORLD_SIZE, config.ySize, WORLD_SIZE}));
 
-    terrain.model.materials[0].shader = shader;
+    //terrain.model.materials[0].shader = shader;
 }
 
 void DestroyTerrain(Terrain &terrain)

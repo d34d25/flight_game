@@ -10,7 +10,7 @@
 
 //Bullets
 
-const unsigned char TRAIL_MAX_ALPHA = 200;
+const unsigned char TRAIL_MAX_ALPHA = 255;//200;
 
 struct BulletPoolProperties
 {
@@ -163,9 +163,9 @@ inline void UpdateTrail(Trail* trail, float dt)
 
     float alphaStep = 250.0f;
 
-    trail->alpha -= alphaStep * dt;
+    //trail->alpha -= alphaStep * dt;
 
-    if(trail->alpha <= 0.0f) trail->alpha = 0.0f;
+    //if(trail->alpha <= 0.0f) trail->alpha = 0.0f;
 }
 
 inline TrailProperties trailsDB[TRAIL_COUNT];

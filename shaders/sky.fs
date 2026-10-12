@@ -14,7 +14,7 @@ uniform float maxHeight;
 
 void main()
 {
-    float shadeCount = 128.0;
+    float shadeCount = 8.0;//128.0;
 
     float factor = clamp((fragPosition.y - minHeight) / (maxHeight - minHeight), 0.0, 1.0);
 
