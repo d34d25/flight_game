@@ -6,8 +6,7 @@ void InitScene(Scene &scene)
 {
     scene.terrainCanvas = LoadRenderTexture(CANVAS_WIDTH * SCALE, CANVAS_HEIGHT * SCALE);
     scene.gameplayCanvas = LoadRenderTexture(CANVAS_WIDTH * SCALE, CANVAS_HEIGHT * SCALE);
-
-    scene.terrainType = DUNES;
+    scene.backgroundCanvas = LoadRenderTexture(CANVAS_WIDTH * SCALE, CANVAS_HEIGHT * SCALE);
 
     InitPlayer(scene.player);
     InitCamera();
@@ -17,7 +16,7 @@ void InitScene(Scene &scene)
     scene.minIntensity = 0.6f;
     scene.maxIntensity = 1.0f;
 
-    scene.flatShader = LoadShader("shaders/flat.vs", "shaders/flat.fs");
+    scene.flatShader = LoadShader("shaders/old/flat.vs", "shaders/old/flat.fs");
 
     scene.lightDirLoc = GetShaderLocation(scene.flatShader, "lightDir");
     scene.minIntensityLoc = GetShaderLocation(scene.flatShader, "minIntensity");
@@ -89,46 +88,53 @@ void InitScene(Scene &scene)
 
     scene.fogDensity = 0.00025f;
 
-    scene.fogShader = LoadShader("shaders/fog.vs", "shaders/fog.fs");
+    scene.fogScrollShader = LoadShader("shaders/fog_scroll.vs", "shaders/fog_scroll.fs");
 
-    scene.fogMinIntensityLoc = GetShaderLocation(scene.fogShader, "minIntensity");
-    scene.fogMaxIntenistyLoc = GetShaderLocation(scene.fogShader, "maxIntensity");
+    scene.fogColorLoc = GetShaderLocation(scene.fogScrollShader, "fogColor");
+
+    scene.fogDensityLoc = GetShaderLocation(scene.fogScrollShader, "fogDensity");
+    scene.viewPosLoc = GetShaderLocation(scene.fogScrollShader, "viewPos");
+
+    scene.fogStartLoc = GetShaderLocation(scene.fogScrollShader, "fogStart");
+    scene.fogEndLoc = GetShaderLocation(scene.fogScrollShader, "fogEnd");
+
+    scene.playerXZLoc = GetShaderLocation(scene.fogScrollShader, "playerXZ");
+
+    scene.scrollingLoc = GetShaderLocation(scene.fogScrollShader, "scrollingFactor");
+
+    SetShaderValue(scene.fogScrollShader, scene.fogColorLoc, &baseColor, SHADER_UNIFORM_VEC4);
     
-    scene.fogLightDirLoc = GetShaderLocation(scene.fogShader, "lightDir");
-    scene.fogColorLoc = GetShaderLocation(scene.fogShader, "fogColor");
+    SetShaderValue(scene.fogScrollShader, scene.fogDensityLoc, &scene.fogDensity, SHADER_UNIFORM_FLOAT);
 
-    scene.fogDensityLoc = GetShaderLocation(scene.fogShader, "fogDensity");
-    scene.viewPosLoc = GetShaderLocation(scene.fogShader, "viewPos");
+    SetShaderValue(scene.fogScrollShader, scene.viewPosLoc, &scene.viewPos, SHADER_UNIFORM_VEC3);
 
-    scene.fogStartLoc = GetShaderLocation(scene.fogShader, "fogStart");
-    scene.fogEndLoc = GetShaderLocation(scene.fogShader, "fogEnd");
+    SetShaderValue(scene.fogScrollShader, scene.fogStartLoc, &scene.fogStart, SHADER_UNIFORM_FLOAT);
+    SetShaderValue(scene.fogScrollShader, scene.fogEndLoc, &scene.fogEnd, SHADER_UNIFORM_FLOAT);
 
-    SetShaderValue(scene.fogShader, scene.fogLightDirLoc, &scene.lightDir, SHADER_UNIFORM_VEC3);
-    SetShaderValue(scene.fogShader, scene.fogMinIntensityLoc, & scene.minIntensity, SHADER_UNIFORM_FLOAT);
-    SetShaderValue(scene.fogShader, scene.fogMaxIntenistyLoc, & scene.maxIntensity, SHADER_UNIFORM_FLOAT);
+    float scrollingFactor = 1.0f / WORLD_SIZE;
 
-    SetShaderValue(scene.fogShader, scene.fogColorLoc, &baseColor, SHADER_UNIFORM_VEC4);
-    
-    SetShaderValue(scene.fogShader, scene.fogDensityLoc, &scene.fogDensity, SHADER_UNIFORM_FLOAT);
+    SetShaderValue(scene.fogScrollShader, scene.scrollingLoc, &scrollingFactor, SHADER_UNIFORM_FLOAT);
 
-    SetShaderValue(scene.fogShader, scene.viewPosLoc, &scene.viewPos, SHADER_UNIFORM_VEC3);
+    Vector2 playerXZ = {
+        scene.player.aircraft.body.transform.translation.x,
+        scene.player.aircraft.body.transform.translation.z
+    };
 
-    SetShaderValue(scene.fogShader, scene.fogStartLoc, &scene.fogStart, SHADER_UNIFORM_FLOAT);
-    SetShaderValue(scene.fogShader, scene.fogEndLoc, &scene.fogEnd, SHADER_UNIFORM_FLOAT);
+    SetShaderValue(scene.fogScrollShader, scene.playerXZLoc, &playerXZ, SHADER_ATTRIB_VEC2);
 
-    //InitTerrain(scene.terrain, scene.fogShader, scene.terrainType);
+    scene.floor = LoadModelFromMesh(GenMeshPlane(WORLD_SIZE, WORLD_SIZE, 128,128));
 
-    scene.floor = LoadModelFromMesh(GenMeshPlane(WORLD_SIZE * 2, WORLD_SIZE * 2, 128,128));
-
-    Image floorImg = GenImageChecked(2000,2000, 1, 1, WHITE, Color{235,235,235,255});
+    Image floorImg = GenImageChecked(250,250, 1, 1, WHITE, VERY_LIGHT_GRAY);
 
     Texture2D floorTexture = LoadTextureFromImage(floorImg);
+
+    SetTextureWrap(floorTexture, TEXTURE_WRAP_REPEAT);
 
     UnloadImage(floorImg);
 
     scene.floor.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = floorTexture;
 
-    scene.floor.materials[0].shader = scene.fogShader;
+    scene.floor.materials[0].shader = scene.fogScrollShader;
 
     //debug
 
@@ -147,8 +153,10 @@ void UpdateScene(Scene &scene, float dt)
 
     UpdateBody(player.aircraft.body, dt);
 
-    //scene.playerCollidedTerrain = CollidedWithTerrain(player.aircraft.body.transform.translation, WORLD_SIZE, terrainDB[scene.terrainType].ySize, scene.terrain.masterImg);
+    Vector3 playerPos = player.aircraft.body.transform.translation;
 
+    scene.playerCollidedTerrain = playerPos.y <= 0.0f;
+    
     scene.playerCollidedSATCCD = SAT3DCCD(
 
         aircraftsDB[player.aircraft.type].collider,
@@ -179,7 +187,7 @@ void UpdateScene(Scene &scene, float dt)
 
     scene.viewPos = renderCamera.position;
 
-    SetShaderValue(scene.fogShader, scene.viewPosLoc, &scene.viewPos, SHADER_UNIFORM_VEC3);
+    SetShaderValue(scene.fogScrollShader, scene.viewPosLoc, &scene.viewPos, SHADER_UNIFORM_VEC3);
 
     if(!player.orbitCamera) UpdateChaseCamera(player, player.aircraft.body.transform, dt);
     else UpdateOrbitCamera(player, dt);
@@ -194,7 +202,12 @@ void UpdateScene(Scene &scene, float dt)
     SetShaderValue(scene.skyShader, scene.minHeightLoc, &scene.minHeight, SHADER_UNIFORM_FLOAT);
     SetShaderValue(scene.skyShader, scene.maxHeightLoc, &scene.maxHeight, SHADER_UNIFORM_FLOAT);
 
-    Vector3 playerPos = player.aircraft.body.transform.translation;
+    Vector2 playerXZ = {
+        playerPos.x,
+        playerPos.z
+    };
+
+    SetShaderValue(scene.fogScrollShader, scene.playerXZLoc, &playerXZ, SHADER_ATTRIB_VEC2);
 
     renderCamera = camera;
 
@@ -221,6 +234,20 @@ void DrawGameplay(Scene &scene)
 
     ClearBackground(SKYBLUE);
 
+    BeginTextureMode(scene.backgroundCanvas);
+
+    BeginMode3D(renderCamera);
+
+    ClearBackground(BLANK);
+
+    DrawSky(scene);
+
+    DrawBG();
+
+    EndMode3D();
+
+    EndTextureMode();
+
     //terrain
     BeginTextureMode(scene.terrainCanvas);
 
@@ -230,11 +257,7 @@ void DrawGameplay(Scene &scene)
 
     BeginMode3D(renderCamera);
 
-    DrawSky(scene);
-
-    //DrawTerrain(scene.terrain, playerPos);
-
-    DrawModel(scene.floor,{-playerPos.x,-playerPos.y,-playerPos.z},1, GREEN);
+    DrawModel(scene.floor,{0,-playerPos.y,0},1, GREEN);
 
     DrawCollider(scene.obstacleCollider, scene.obstacleTransform, playerPos);
 
@@ -252,7 +275,7 @@ void DrawGameplay(Scene &scene)
 
     BeginMode3D(renderCamera);
 
-    DrawAircraft(player.aircraft);
+    DrawPlayer(player.aircraft);
 
     //DrawCollider(aircraftsDB[player.aircraft.type].collider, player.aircraft.body.transform, playerPos);
 
@@ -296,16 +319,31 @@ void DrawScene(Scene &scene)
         (float)-scene.terrainCanvas.texture.height
     };
 
-    Rectangle destGameplayRec = {
+    Rectangle sourceBackgroundRec = {
+        0, 0,
+        (float)scene.backgroundCanvas.texture.width,
+        (float)-scene.backgroundCanvas.texture.height
+    };
+
+    Rectangle destRec = {
         offsetX, offsetY,
         NATIVE_WIDTH,
         NATIVE_HEIGHT
     };
 
     DrawTexturePro(
+        scene.backgroundCanvas.texture,
+        sourceBackgroundRec,
+        destRec,
+        {0.0f,0.0f},
+        0.0f,
+        WHITE
+    );
+    
+    DrawTexturePro(
         scene.terrainCanvas.texture,
         sourceTerrainRec,
-        destGameplayRec,
+        destRec,
         {0.0f,0.0f},
         0.0f,
         WHITE
@@ -314,7 +352,7 @@ void DrawScene(Scene &scene)
     DrawTexturePro(
         scene.gameplayCanvas.texture,
         sourceGamplayRec,
-        destGameplayRec,
+        destRec,
         {0.0f,0.0f},
         0.0f,
         WHITE
@@ -327,7 +365,7 @@ void UnloadScene(Scene &scene)
 
     UnloadShader(scene.skyShader);
 
-    UnloadShader(scene.fogShader);
+    UnloadShader(scene.fogScrollShader);
 
     UnloadRenderTexture(scene.gameplayCanvas);
 

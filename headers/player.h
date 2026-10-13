@@ -72,9 +72,9 @@ inline void InitPlayer(Player& player)
     player.aircraft = InitAircraft(F_15);
 
     player.aircraft.body.transform.translation = {
-        WORLD_SIZE * 0.5f,
+        0.0f,
         800.0f,
-        WORLD_SIZE * 0.5f
+        0.0f
     };
     
     player.engineGlow = 1.0f;

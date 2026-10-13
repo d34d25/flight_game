@@ -19,7 +19,9 @@ constexpr Color TRANSPARENT_BLUE = {150, 150, 255, 255};
 
 constexpr Color DEEP_BLUE = {25,25,100,255};
 
-constexpr float WORLD_SIZE =  50000;
+constexpr Color VERY_LIGHT_GRAY = {235,235,235,255};
+
+constexpr float WORLD_SIZE = 10000;
 
 inline void FollowTransform(Transform& transformA, const Transform& transformB, const Vector3& offset)
 {

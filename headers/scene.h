@@ -8,8 +8,6 @@
 
 #include <GL/gl.h>
 
-#include "terrain.h"
-
 #include "collisions.h"
 
 constexpr float NATIVE_WIDTH = 1600;
@@ -32,6 +30,8 @@ struct Scene
 
     Model skySphereModel;
 
+    RenderTexture backgroundCanvas;
+
     RenderTexture terrainCanvas;
 
     RenderTexture gameplayCanvas;
@@ -40,7 +40,7 @@ struct Scene
 
     Shader flatShader;
 
-    Shader fogShader;
+    Shader fogScrollShader;
 
     //sky shader
     Color baseColor;
@@ -53,8 +53,6 @@ struct Scene
     //------------------
 
     Vector3 lightDir;
-
-    TerrainType terrainType;
 
     float minHeight;
     float maxHeight;
@@ -90,14 +88,13 @@ struct Scene
     //------------------
 
     //fog shader
-    int fogMinIntensityLoc;
-    int fogMaxIntenistyLoc;
-    int fogLightDirLoc;
     int fogColorLoc;
     int fogDensityLoc;
     int viewPosLoc;
     int fogStartLoc;
     int fogEndLoc;
+    int playerXZLoc;
+    int scrollingLoc;
     //------------------
 
     //debug
@@ -133,7 +130,7 @@ inline void DrawSky(Scene& scene)
 
     rlSetMatrixModelview(view);
 
-    DrawModel(scene.skySphereModel, {0,0,0}, 1, WHITE);
+    DrawModel(scene.skySphereModel, {0,0,0}, 3, WHITE);
 
     rlEnableDepthMask();
     rlEnableBackfaceCulling();
@@ -143,7 +140,7 @@ inline void DrawSky(Scene& scene)
     rlPopMatrix();
 }
 
-inline void DrawAircraft(Aircraft& aircraft)
+inline void DrawPlayer(Aircraft& aircraft)
 {
     Model& model = GetAircraftModel(aircraft);
     
@@ -154,8 +151,21 @@ inline void DrawAircraft(Aircraft& aircraft)
     QuaternionToAxisAngle(aircraft.body.transform.rotation, &rotationAxis, &rotationAngle);
 
     DrawModelEx(model, {0,0,0}, rotationAxis, rotationAngle * RAD2DEG, {1.0f,1.0f,1.0f}, aircraft.debugColor);
+}
 
-    //DrawModelWiresEx(model, {0,0,0}, rotationAxis, rotationAngle * RAD2DEG, {1.0f,1.0f,1.0f}, BLACK);
+inline void DrawAircraft(Aircraft& aircraft, Vector3 playerPos)
+{
+    Model& model = GetAircraftModel(aircraft);
+    
+    Vector3 rotationAxis = {0.0f,0.0f,0.0f};
+    
+    float rotationAngle = 0.0f;
+
+    Vector3 aircraftPos = aircraft.body.transform.translation - playerPos;
+
+    QuaternionToAxisAngle(aircraft.body.transform.rotation, &rotationAxis, &rotationAngle);
+
+    DrawModelEx(model, aircraftPos, rotationAxis, rotationAngle * RAD2DEG, {1.0f,1.0f,1.0f}, aircraft.debugColor);
 }
 
 inline void DrawBullets(Aircraft& aircraft, Vector3 playerPos)
@@ -178,6 +188,31 @@ inline void DrawBullets(Aircraft& aircraft, Vector3 playerPos)
 
         rlPopMatrix();
     }
+}
+
+inline void DrawBG()
+{
+    //replace with plane models for the background
+
+    //create a fog shader that combines the z and y axis for it (fade out towards y = 0 + normal fog)
+
+    //use pre defined positions for the meshes
+
+    //create an enum that dictates the floor and sky colors and the background mesh variant
+
+    float yOffset = -100;
+
+    float zOffset = 200;
+
+    float size = 100;
+
+    Vector3 v1 = {0,0 + yOffset,zOffset};
+
+    Vector3 v2 = {0,size + yOffset,zOffset};
+
+    Vector3 v3 = {size, 0 + yOffset, zOffset};
+
+    DrawTriangle3D(v1,v2,v3, DARKGREEN);
 }
 
 inline void DrawMissiles(Aircraft& aircraft, Vector3 playerPos)
