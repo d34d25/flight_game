@@ -136,6 +136,10 @@ void InitScene(Scene &scene)
 
     scene.floor.materials[0].shader = scene.fogScrollShader;
 
+    //enemy
+
+    InitEnemy(scene.testEnemyFighter, scene.player.aircraft.body.transform.translation);
+
     //debug
 
     scene.obstacleCollider = CreatePrismatoid(50,50,20,20,1000);
@@ -154,6 +158,18 @@ void UpdateScene(Scene &scene, float dt)
     UpdateBody(player.aircraft.body, dt);
 
     Vector3 playerPos = player.aircraft.body.transform.translation;
+
+    //
+
+    //update enemy here
+
+    UpdateEnemy(scene.testEnemyFighter, playerPos);
+
+    UpdateEnemyAI(scene.testEnemyFighter, playerPos);
+
+    UpdateBody(scene.testEnemyFighter.aircraft.body, dt);
+
+    //
 
     scene.playerCollidedTerrain = playerPos.y <= 0.0f;
     
@@ -209,6 +225,8 @@ void UpdateScene(Scene &scene, float dt)
 
     SetShaderValue(scene.fogScrollShader, scene.playerXZLoc, &playerXZ, SHADER_ATTRIB_VEC2);
 
+    //render camera
+
     renderCamera = camera;
 
     renderCamera.position -= playerPos;
@@ -242,7 +260,7 @@ void DrawGameplay(Scene &scene)
 
     DrawSky(scene);
 
-    DrawBG();
+    //DrawBG();
 
     EndMode3D();
 
@@ -260,6 +278,12 @@ void DrawGameplay(Scene &scene)
     DrawModel(scene.floor,{0,-playerPos.y,0},1, GREEN);
 
     DrawCollider(scene.obstacleCollider, scene.obstacleTransform, playerPos);
+
+    DrawAircraft(scene.testEnemyFighter.aircraft, playerPos);
+
+    const Vector3& enemyPos = scene.testEnemyFighter.aircraft.body.transform.translation;
+
+    DrawLine3D({0,0,0}, enemyPos - playerPos, RED);
 
     EndMode3D();
 

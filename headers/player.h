@@ -71,6 +71,8 @@ inline void InitPlayer(Player& player)
 {
     player.aircraft = InitAircraft(F_15);
 
+    AircraftType type = player.aircraft.type;
+
     player.aircraft.body.transform.translation = {
         0.0f,
         800.0f,
@@ -85,15 +87,15 @@ inline void InitPlayer(Player& player)
 
     SetShaderValue(player.engineShader, player.engineBrightnessLoc, &player.engineGlow, SHADER_UNIFORM_FLOAT);
 
-    const AircraftConfig& config = aircraftsDB[player.aircraft.type];
+    const AircraftConfig& config = aircraftsDB[type];
 
     GetAircraftModel(player.aircraft).materials[config.engineMaterial].shader = player.engineShader;
 
     Vector3 bodyDirection = GetWorldVectorFromLocalVector(player.aircraft.body.transform.rotation, LOCAL_FORWARD);
 
-    player.aircraft.thrust = aircraftsDB[player.aircraft.type].idleThrust;
+    player.aircraft.thrust = aircraftsDB[type].idleThrust;
 
-    player.aircraft.body.linearVelocity = Vector3Normalize(bodyDirection) * aircraftsDB[F_15].idleSpeed;
+    player.aircraft.body.linearVelocity = Vector3Normalize(bodyDirection) * aircraftsDB[type].idleSpeed;
 }
 
 inline float GetForwardSpeed(Player& player)

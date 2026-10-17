@@ -23,6 +23,7 @@ constexpr Color VERY_LIGHT_GRAY = {235,235,235,255};
 
 constexpr float WORLD_SIZE = 10000;
 
+//makes transformA follow transformB, an offset can be added
 inline void FollowTransform(Transform& transformA, const Transform& transformB, const Vector3& offset)
 {
     Vector3 rotatedOffset = Vector3RotateByQuaternion(offset, transformB.rotation);
@@ -32,7 +33,7 @@ inline void FollowTransform(Transform& transformA, const Transform& transformB, 
     transformA.rotation = transformB.rotation;
 }
 
-//transform a local space vector into a world space vector 
+//transform a local space vector into a world space vector, the returned vector is already normalized
 inline Vector3 GetWorldVectorFromLocalVector(const Quaternion& rotation, const Vector3& direction)
 {
     Vector3 localVec = Vector3RotateByQuaternion(direction, QuaternionNormalize(rotation));
@@ -47,6 +48,7 @@ inline float GetDesiredValue(float desiredValue, float drag)
     return desiredValue * drag;
 }
 
+//projects a X and Z 3D positions into 2D X and Y position
 inline Vector2 _3DXZTo2DXY(Vector2 xz, float worldSize, int imgWidth, int imgHeight)
 {
     Vector2 xzvec = xz;
@@ -59,6 +61,7 @@ inline Vector2 _3DXZTo2DXY(Vector2 xz, float worldSize, int imgWidth, int imgHei
     return xzvec;
 }
 
+//transforms a set of local vertices based on a given transform
 inline std::vector<Vector3> GetTransformedVertices(const std::vector<Vector3>& vertices, const Transform& transform)
 {
     std::vector<Vector3> transformedVertices = {};

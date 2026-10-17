@@ -38,7 +38,7 @@ void UpdateBulletPool(BulletPool& bulletpool, float dt)
 
             b->currentTime += dt;
 
-            if(b->currentTime >= b->properties.lifeTime || b->didhHit)
+            if(b->currentTime >= b->properties.lifeTime || b->didhHit || b->transform.translation.y <= 0.0f)
             {
                 bulletpool.inactiveBullets.push_back(b);
 
@@ -263,7 +263,7 @@ void UpdateMissilePool(MissilePool &missilePool, float dt)
 
             UpdateTrailPool(m->trailPool, dt);
 
-            if(m->currentTime >= m->properties.lifeTime || m->didHit)
+            if(m->currentTime >= m->properties.lifeTime || m->didHit || m->body.transform.translation.y <= 0.0f)
             {
                 missilePool.inactiveMissiles.push_back(m);
 

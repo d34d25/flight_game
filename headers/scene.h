@@ -10,6 +10,8 @@
 
 #include "collisions.h"
 
+#include "enemy.h"
+
 constexpr float NATIVE_WIDTH = 1600;
 constexpr float NATIVE_HEIGHT = 900;
 
@@ -23,6 +25,8 @@ inline Camera3D renderCamera;
 struct Scene
 {
     Player player;
+
+    Enemy testEnemyFighter;
 
     //Terrain terrain;
 
@@ -165,7 +169,9 @@ inline void DrawAircraft(Aircraft& aircraft, Vector3 playerPos)
 
     QuaternionToAxisAngle(aircraft.body.transform.rotation, &rotationAxis, &rotationAngle);
 
-    DrawModelEx(model, aircraftPos, rotationAxis, rotationAngle * RAD2DEG, {1.0f,1.0f,1.0f}, aircraft.debugColor);
+    float scale = 1.0f; //scale for debug
+
+    DrawModelEx(model, aircraftPos, rotationAxis, rotationAngle * RAD2DEG, {scale,scale,scale}, WHITE);
 }
 
 inline void DrawBullets(Aircraft& aircraft, Vector3 playerPos)

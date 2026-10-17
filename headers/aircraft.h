@@ -72,6 +72,11 @@ struct AircraftConfig
     int engineMaterial;
 };
 
+/*
+maybe I should create a physical object struct
+and decouple the transform from the Body struct
+*/
+
 struct Aircraft
 {
     Body body;
